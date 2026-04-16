@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DentAssist - Smart Dental Clinic Management</title>
+    <!-- Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Icons: Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Subtle Noise Texture Overlay -->
+    <div class="bg-noise"></div>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen" class="splash-container flex-center">
+        <div class="logo-large flex-center flex-col text-center">
+            <div class="logo-icon mb-1 wave-animation flex-center"><i class='bx bx-plus-medical'></i></div>
+            <h1 class="font-bold tracking-wide mt-1">DentAssist</h1>
+            <p class="text-dim text-sm mt-1">Smart Dental Clinic Management</p>
+        </div>
+    </div>
+
+    <!-- GLOBAL LOADER -->
+    <div id="global-loader" class="global-loader-container hidden flex-center">
+        <div class="loader-box card flex-center flex-col soft-shadow-lg pattern-bg-subtle">
+            <div class="spinner"></div>
+            <p id="loader-text" class="text-sm font-medium mt-2">Processing...</p>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="app-container">
+
+        <!-- 1. AUTHENTICATION FLOW -->
+        <section id="auth-section" class="screen active auth-wrapper flex-center">
+            <div class="auth-box card soft-shadow-lg pattern-bg-subtle">
+                <div class="auth-header">
+                    <div class="logo logo-large flex-center">
+                        <div class="logo-icon"><i class='bx bx-plus-medical'></i></div>
+                        <span>DentAssist</span>
+                    </div>
+                    <p class="text-dim mt-1">Enter your details to proceed</p>
+                </div>
+
+                <div class="auth-tabs bg-white">
+                    <button class="tab-btn active" data-target="login">Login</button>
+                    <button class="tab-btn" data-target="register">Register</button>
+                </div>
+
+                <div class="auth-forms">
+                    <!-- Login Form -->
+                    <form id="form-login" class="auth-form active">
+                        <div class="input-group">
+                            <i class='bx bx-user'></i>
+                            <input type="text" placeholder="Email / Username" required>
+                        </div>
+                        <div class="input-group">
+                            <i class='bx bx-lock-alt'></i>
+                            <input type="password" placeholder="Password" required>
+                        </div>
+                        <div class="role-selector soft-shadow-sm">
+                            <label><input type="radio" name="login-role" value="patient" checked> Patient</label>
+                            <label><input type="radio" name="login-role" value="admin"> Admin</label>
+                        </div>
+                        <div class="text-right mt-1 mb-2">
+                            <a href="#" class="text-sm font-medium text-dim hover-lift" style="display:inline-block;"
+                                onclick="app.switchScreen('forgot-password-section')">Forgot Password?</a>
+                        </div>
+                        <button type="button" class="btn-primary w-full shadow-hover"
+                            onclick="app.login()">Login</button>
+
+                    </form>
+
+                    <!-- Register Form -->
+                    <form id="form-register" class="auth-form">
+                        <div class="input-group">
+                            <i class='bx bx-id-card'></i>
+                            <input type="text" id="reg-name" placeholder="Full Name" required>
+                        </div>
+                        <div class="input-group">
+                            <i class='bx bx-phone'></i>
+                            <input type="tel" id="reg-phone" placeholder="Contact Number" required>
+                        </div>
+                        <div class="input-group">
+                            <i class='bx bx-envelope'></i>
+                            <input type="email" id="reg-email" placeholder="Email Address" required>
+                        </div>
+                        <div class="input-group">
+                            <i class='bx bx-lock-alt'></i>
+                            <input type="password" id="reg-password" placeholder="Password" required>
+                        </div>
+                        <div class="role-selector soft-shadow-sm mb-1">
+                            <label onclick="app.toggleRegisterFields('patient')">
+                                <input type="radio" name="register-role" value="patient" checked> Patient
+                            </label>
+                            <label onclick="app.toggleRegisterFields('admin')">
+                                <input type="radio" name="register-role" value="admin"> Admin / Dentist
+                            </label>
+                        </div>
+
+                        <!-- Dentist Specific Fields (Initially Hidden) -->
+                        <div id="dentist-extra-fields" class="hidden transition-all">
+                            <div class="input-group mb-1">
+                                <i class='bx bx-id-card'></i>
+                                <input type="text" id="reg-professional-id" placeholder="Professional ID (Optional)">
+                            </div>
+                            <div class="input-group">
+                                <i class='bx bx-briefcase-alt'></i>
+                                <select id="reg-dentist-position" class="custom-input bg-white" style="height: auto; padding: 0.6rem 2.5rem;">
+                                    <option value="" disabled selected>Select Position</option>
+                                    <option value="General Dentist">General Dentist</option>
+                                    <option value="Orthodontist">Orthodontist</option>
+                                    <option value="Oral Surgeon">Oral Surgeon</option>
+                                    <option value="Hygienist">Hygienist</option>
+                                    <option value="Clinic Administrator">Clinic Administrator</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-primary w-full mt-2 shadow-hover"
+                            onclick="app.register()">Create
+                            Account</button>
+
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- 1.2 FORGOT PASSWORD SECTION -->
+        <section id="forgot-password-section" class="screen auth-wrapper flex-center">
+            <div class="auth-box card soft-shadow-lg pattern-bg-subtle">
+                <div class="page-header text-center mb-2" style="position: relative;">
+                    <div style="position: absolute; left: 0; top: 0;">
+                        <button class="btn-icon circle outline bg-white shadow-sm" title="Go Back to Login"
+                            onclick="app.switchScreen('auth-section')"><i class='bx bx-arrow-back'></i></button>
+                    </div>
+                    <div class="logo-icon mx-auto mb-1 bg-primary-light text-primary"><i class='bx bx-key'></i></div>
+                    <h2 class="section-title mb-0">Reset Password</h2>
+                    <p class="text-dim text-sm mt-1">Verify your account to set a new password.</p>
+                </div>
+
+                <!-- Step 1: Verification -->
+                <div id="forgot-step-1">
+                    <div class="input-group mb-1">
+                        <i class='bx bx-envelope'></i>
+                        <input type="email" id="forgot-email" placeholder="Registered Email" required>
+                    </div>
+                    <div class="input-group mb-2">
+                        <i class='bx bx-phone'></i>
+                        <input type="tel" id="forgot-phone" placeholder="Registered Phone" required>
+                    </div>
+                    <button type="button" class="btn-primary w-full shadow-hover" onclick="app.verifyForReset()">Verify
+                        Details</button>
+                </div>
+
+                <!-- Step 2: New Password (Hidden until verified) -->
+                <div id="forgot-step-2" class="hidden">
+                    <div class="input-group mb-1">
+                        <i class='bx bx-lock-open-alt'></i>
+                        <input type="password" id="new-password" placeholder="New Password" required>
+                    </div>
+                    <div class="input-group mb-2">
+                        <i class='bx bx-check-shield'></i>
+                        <input type="password" id="confirm-new-password" placeholder="Confirm New Password" required>
+                    </div>
+                    <button type="button" class="btn-primary w-full shadow-hover" onclick="app.resetPassword()">Update
+                        Password</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 1.5 ONBOARDING INTAKE -->
+        <section id="onboarding-section" class="screen auth-wrapper flex-center">
+            <div class="auth-box card soft-shadow-lg pattern-bg-subtle">
+                <div class="page-header text-center mb-2" style="position: relative;">
+                    <div style="position: absolute; left: 0; top: 0;">
+                        <button class="btn-icon circle outline bg-white shadow-sm" title="Go Back to Login"
+                            onclick="app.switchScreen('auth-section')"><i class='bx bx-arrow-back'></i></button>
+                    </div>
+                    <div class="logo-icon mx-auto mb-1"><i class='bx bx-clipboard'></i></div>
+                    <h2 class="section-title mb-0">Patient Intake Form</h2>
+                    <p class="text-dim text-sm mt-1">Please complete this medical history form before booking an
+                        appointment.</p>
+                </div>
+                <form id="form-onboarding">
+                    <div class="form-grid gap-1 mb-2">
+                        <div class="form-group text-left">
+                            <label>Date of Birth</label>
+                            <input type="date" class="custom-input bg-white" required>
+                        </div>
+                        <div class="form-group text-left">
+                            <label>Emergency Contact Name</label>
+                            <input type="text" class="custom-input bg-white" placeholder="e.g., Juan Dela Cruz"
+                                required>
+                        </div>
+                        <div class="form-group text-left">
+                            <label>Emergency Contact Number</label>
+                            <input type="tel" class="custom-input bg-white" placeholder="+1..." required>
+                        </div>
+                        <div class="form-group text-left">
+                            <label>Allergies (if any)</label>
+                            <textarea class="custom-input bg-white" rows="2"
+                                placeholder="e.g., Penicillin, Latex..."></textarea>
+                        </div>
+                        <div class="form-group text-left">
+                            <label>Current Medications</label>
+                            <textarea class="custom-input bg-white" rows="2"
+                                placeholder="e.g., Blood thinners..."></textarea>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-primary w-full shadow-hover" onclick="app.submitOnboarding()">Save
+                        & Proceed</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 1.6 PENDING VERIFICATION -->
+        <section id="pending-section" class="screen auth-wrapper flex-center">
+            <div class="auth-box card soft-shadow-lg text-center p-3">
+                <div class="logo-icon mx-auto mb-2 bg-warning-light text-warning"
+                    style="width: 80px; height: 80px; font-size: 40px; border-radius: 50%;">
+                    <i class='bx bx-time-five'></i>
+                </div>
+                <h2 class="section-title">Verification Pending</h2>
+                <p class="text-dim mt-1">Hello <b id="pending-name">Expert</b>, your professional credentials have been
+                    submitted to **Dr. L. Reyes** for review.</p>
+
+                <div class="card bg-muted border-none mt-2 p-1 text-sm text-left">
+                    <p><i class='bx bx-info-circle mr-1'></i> <b>What happens next?</b></p>
+                    <ul class="ml-1 mt-1 text-dim" style="list-style: disc;">
+                        <li>Dr. Reyes will verify your medical license.</li>
+                        <li>Once approved, you will gain full dashboard access.</li>
+                        <li>Your name will be added to the booking directory.</li>
+                    </ul>
+                </div>
+
+                <button class="btn-primary w-full mt-2" onclick="app.switchScreen('auth-section')">
+                    <i class='bx bx-arrow-back mr-1'></i> Return to Login
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. PATIENT FLOW -->
+        <section id="patient-section" class="screen">
+            <nav class="top-nav border-bottom bg-glass">
+                <div class="logo">
+                    <div class="logo-icon"><i class='bx bx-plus-medical'></i></div>
+                    DentAssist
+                </div>
+                <!-- Enhanced Main Menu Navigation -->
+                <div class="nav-links">
+                    <a href="#" class="active" onclick="app.switchPatientTab('dashboard')"><i
+                            class='bx bx-home-alt-2 mr-1'></i> Home</a>
+                    <a href="#" onclick="app.switchPatientTab('booking')"><i class='bx bx-calendar-plus mr-1'></i> Book
+                        Appointment</a>
+                    <a href="#" onclick="app.switchPatientTab('my-appointments')"><i class='bx bx-history mr-1'></i> My
+                        Records</a>
+                </div>
+                <div class="user-profile clickable-profile" onclick="app.openProfileModal()">
+                    <div id="patient-avatar" class="avatar flex-center bg-black text-white font-bold"
+                        style="border-radius: 50%; font-size: 14px;">--</div>
+                    <div class="flex-col">
+                        <span id="patient-nav-name" class="font-medium">Loading...</span>
+                        <span class="profile-indicator">Profile <i class='bx bx-chevron-right'></i></span>
+                    </div>
+                    <button class="btn-icon circle outline ml-1" onclick="event.stopPropagation(); app.logout()" title="Logout"><i
+                            class='bx bx-log-out'></i></button>
+                </div>
+            </nav>
+
+            <div class="patient-content content-wrapper">
+
+                <!-- NEW: Patient Dashboard Main Menu -->
+                <div id="patient-dashboard" class="patient-tab active">
+                    <div class="page-header mb-2 flex-center-between border-bottom pb-2">
+                        <div>
+                            <h2 id="patient-greeting" class="section-title mb-0">Hello! 👋</h2>
+                            <p class="text-dim mt-1">Ready for your next check-up? Here's your clinic overview.</p>
+                        </div>
+                        <div id="patient-reward-points"
+                            class="bg-primary-light text-primary px-2 py-1 rounded font-medium flex items-center border-dashed clickable-profile"
+                            style="cursor: pointer;" onclick="app.openRewardsModal()">
+                            <i class='bx bx-star text-lg mr-1'></i> 0 Reward Points
+                            <span class="profile-indicator">View Rewards <i class='bx bx-chevron-right'></i></span>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-panels mt-2 flex-col gap-2">
+                        <!-- Upcoming Appointment Highlight (Dynamic) -->
+                        <div id="upcoming-appointment-card"
+                            class="card detail-card pattern-bg-subtle bg-white hover-lift" style="cursor: pointer;"
+                            onclick="app.switchPatientTab('my-appointments')">
+                            <!-- Populated dynamically by app.renderPatientDashboard() -->
+                        </div>
+
+                        <!-- Quick Actions Grid -->
+                        <div class="flex gap-2">
+                            <div class="card flex-1 text-center hover-lift bg-white" style="cursor: pointer;"
+                                onclick="app.switchPatientTab('booking')">
+                                <div class="avatar-large mx-auto flex-center bg-black text-white mb-1 shadow-sm">
+                                    <i style="color:white;" class='bx bx-plus-medical text-xl'></i>
+                                </div>
+                                <h4 class="font-bold">Book Visit</h4>
+                                <p class="text-xs text-dim mt-1">Schedule a new appointment easily.</p>
+                            </div>
+                            <div class="card flex-1 text-center hover-lift bg-white" style="cursor: pointer;"
+                                onclick="app.switchPatientTab('history')">
+                                <div class="avatar-large mx-auto flex-center bg-muted text-dim mb-1 border-dashed">
+                                    <i class='bx bx-history text-xl'></i>
+                                </div>
+                                <h4 class="font-bold">Treatment History</h4>
+                                <p class="text-xs text-dim mt-1">View your past dental records.</p>
+                            </div>
+                            <div class="card flex-1 text-center hover-lift bg-white" style="cursor: pointer;"
+                                onclick="app.triggerMockAction('Opening Billing & Invoices...', 'info')">
+                                <div class="avatar-large mx-auto flex-center bg-muted text-dim mb-1 border-dashed">
+                                    <i class='bx bx-receipt text-xl'></i>
+                                </div>
+                                <h4 class="font-bold">Billing & Invoices</h4>
+                                <p class="text-xs text-dim mt-1">Check recent payments and quotes.</p>
+                            </div>
+                        </div>
+
+                        <!-- Patient Personal Information -->
+                        <div class="card detail-card bg-white mt-1">
+                            <h3 class="card-title border-bottom pb-1"><i class='bx bx-user-pin text-primary mr-1'></i>
+                                Personal Information</h3>
+                            <button class="btn-text text-primary text-xs font-bold" onclick="app.openProfileModal()" style="position:absolute; top: 1.25rem; right: 1.25rem;"><i class='bx bx-edit'></i> Edit Profile</button>
+                            <div class="form-grid mt-2" style="grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                                <div>
+                                    <p class="text-xs text-dim uppercase font-bold">Email Address</p>
+                                    <p id="patient-info-email" class="font-medium text-sm">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-dim uppercase font-bold">Phone Number</p>
+                                    <p id="patient-info-phone" class="font-medium text-sm">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-dim uppercase font-bold">Date of Birth</p>
+                                    <p id="patient-info-dob" class="font-medium text-sm">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-dim uppercase font-bold">Member Since</p>
+                                    <p id="patient-info-joined" class="font-medium text-sm">--</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recommended Services -->
+                        <div class="card detail-card bg-white mt-1">
+                            <h3 class="card-title border-bottom pb-1"><i class='bx bx-star text-warning mr-1'></i>
+                                Recommended For You</h3>
+                            <div id="recommended-service-list">
+                                <div class="list-row items-center border-bottom pb-1 pt-1 mb-0 hover-lift bg-transparent pattern-bg-subtle"
+                                    style="cursor: pointer;" onclick="app.switchPatientTab('booking')">
+                                    <div class="avatar bg-muted text-dim flex-center border-dashed"><i
+                                            class='bx bx-smile'></i></div>
+                                    <div class="flex-1">
+                                        <h4 class="font-bold">Laser Teeth Whitening</h4>
+                                        <p class="text-sm text-dim">Special 15% discount for returning patients.</p>
+                                    </div>
+                                    <button class="btn-outline w-auto shadow-hover"
+                                        onclick="app.switchPatientTab('booking')"><i
+                                            class='bx bx-calendar-plus mr-1'></i>
+                                        Book Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Booking Page -->
+                <div id="patient-booking" class="patient-tab">
+                    <div class="page-header mb-2 border-bottom pb-2 flex items-center justify-between">
+                        <div>
+                            <h2 class="section-title mb-0">Book an Appointment</h2>
+                            <p class="text-dim mt-1">Select your desired service and secure a time slot.</p>
+                        </div>
+                        <button class="btn-outline w-auto" onclick="app.switchPatientTab('dashboard')"><i
+                                class='bx bx-arrow-back mr-1'></i> Back to Home</button>
+                    </div>
+
+                    <div class="booking-layout flex-col">
+                        <!-- Step 1: Choose Dentist -->
+                        <div class="card detail-card bg-white mb-2 soft-shadow-sm">
+                            <h3 class="card-title border-bottom pb-1"><i class='bx bx-user-pin text-dim mr-1'></i>
+                                1. Choose Your Dentist</h3>
+                            <div id="dentist-list" class="flex flex-wrap gap-2 mt-2">
+                                <!-- Populated by app.loadDentists() -->
+                                <div class="text-center w-full py-2 text-dim italic">Loading available experts...</div>
+                            </div>
+                            <input type="hidden" id="selected-dentist-id">
+                        </div>
+
+                        <div class="flex gap-2 responsive-flex-col">
+                            <!-- Step 2: Selection -->
+                            <div class="card flex-2 detail-card bg-white hover-lift">
+                                <h3 class="card-title border-bottom pb-1"><i class='bx bx-list-check text-dim mr-1'></i>
+                                    2. Select Service & Date</h3>
+                                <div class="form-grid mt-2">
+                                    <div class="form-group">
+                                        <label>Dental Service</label>
+                                        <div class="select-wrapper">
+                                            <select id="booking-service" class="custom-select bg-muted shadow-sm">
+                                                <option value="">Loading services...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Preferred Date</label>
+                                        <input type="date" id="booking-date" class="custom-input bg-muted shadow-sm"
+                                            onchange="app.checkAvailability()">
+                                    </div>
+                                </div>
+                                <p class="text-xs text-dim mt-1 italic">* Slots update automatically when you select a
+                                    date.</p>
+                            </div>
+
+                            <!-- Step 3: Time Slots -->
+                            <div class="card flex-1 time-slots-card detail-card pattern-bg-subtle hover-lift"
+                                id="time-slots" style="opacity: 0.5; pointer-events: none;">
+                                <h3 class="card-title"><i class='bx bx-time text-dim mr-1'></i> 3. Available Slots</h3>
+                                <div id="dentist-badge-placeholder"
+                                    class="dentist-badge bg-white mt-1 mb-2 soft-shadow-sm hidden">
+                                    <div class="avatar-small bg-primary text-white flex-center font-bold">DR</div>
+                                    <span id="selected-dentist-name-badge">Dr. Reyes</span>
+                                </div>
+                                <div class="slots-grid" id="slots-container">
+                                    <div class="text-center py-2 text-dim text-xs">Select a dentist and date first</div>
+                                </div>
+                                <button class="btn-primary w-full mt-2 shadow-hover" onclick="app.confirmBooking()"><i
+                                        class='bx bx-check-circle mr-1'></i> Confirm Booking</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Appointments / Records -->
+                <!-- My Appointments / Records (Dynamic) -->
+                <div id="patient-my-appointments" class="patient-tab">
+                    <div class="page-header mb-2 border-bottom pb-2 flex items-center justify-between">
+                        <div>
+                            <h2 class="section-title mb-0">My Records & Appointments</h2>
+                            <p class="text-dim mt-1">View and manage your upcoming visits and history.</p>
+                        </div>
+                        <button class="btn-outline w-auto" onclick="app.switchPatientTab('dashboard')"><i
+                                class='bx bx-arrow-back mr-1'></i> Back to Home</button>
+                    </div>
+                    <div id="appointments-list-dynamic" class="appointments-list">
+                        <!-- Populated dynamically by app.renderPatientDashboard() -->
+                    </div>
+                </div>
+
+                <!-- NEW: Treatment History / Clinical Records tab -->
+                <div id="patient-history" class="patient-tab">
+                    <div class="page-header mb-2 border-bottom pb-2 flex items-center justify-between">
+                        <div>
+                            <h2 class="section-title mb-0">Treatment History</h2>
+                            <p class="text-dim mt-1">Detailed clinical log of your given dental procedures.</p>
+                        </div>
+                        <button class="btn-outline w-auto" onclick="app.switchPatientTab('dashboard')"><i
+                                class='bx bx-arrow-back mr-1'></i> Back to Home</button>
+                    </div>
+
+                    <div class="card detail-card bg-white p-0 overflow-hidden mt-2">
+                        <table class="data-table">
+                            <thead class="bg-muted">
+                                <tr>
+                                    <th class="pl-2">Date</th>
+                                    <th>Procedure</th>
+                                    <th>Tooth #</th>
+                                    <th>Dentist</th>
+                                    <th class="text-right pr-2">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="treatment-history-body">
+                                <!-- Populated dynamically by app.renderPatientDashboard() -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ADMIN FLOW -->
+        <section id="admin-section" class="screen flex-row">
+            <!-- Sidebar -->
+            <aside class="sidebar border-right bg-glass">
+                <div class="logo mt-1 mb-2">
+                    <div class="logo-icon"><i class='bx bx-plus-medical'></i></div>
+                    DentAssist
+                    <span class="badge text-xs ml-1 border-badge badge-admin">Admin</span>
+                </div>
+                <ul class="sidebar-menu">
+                    <li class="active" onclick="app.switchAdminTab('dashboard', this)"><i class='bx bx-grid-alt'></i>
+                        <span>Dashboard</span>
+                    </li>
+                    <li onclick="app.switchAdminTab('calendar', this)"><i class='bx bx-calendar'></i>
+                        <span>Appointments</span>
+                    </li>
+                    <li onclick="app.switchAdminTab('global-queue', this)">
+                        <i class='bx bx-git-pull-request'></i> Global Queue
+                    </li>
+                    <li onclick="app.switchAdminTab('services', this)"><i class='bx bx-list-ol'></i>
+                        <span>Services</span>
+                    </li>
+                    <li onclick="app.switchAdminTab('patients', this)">
+                        <i class='bx bx-user-circle'></i> Patients
+                    </li>
+                    <li id="menu-dentists" class="hidden" onclick="app.switchAdminTab('dentists', this)">
+                        <i class='bx bx-plus-medical'></i> Professionals
+                    </li>
+                    <li id="menu-approvals" class="hidden" onclick="app.switchAdminTab('approvals', this)">
+                        <i class='bx bx-user-check'></i> Approvals
+                    </li>
+                    <li onclick="app.switchAdminTab('settings', this)"><i class='bx bx-cog'></i> <span>Settings</span>
+                    </li>
+                </ul>
+                <div class="sidebar-footer">
+                    <div class="user-profile card-inner soft-shadow clickable-profile" onclick="app.openProfileModal()">
+                        <div id="admin-avatar-sidebar" class="avatar flex-center bg-black text-white font-bold"
+                            style="border-radius: 50%; font-size: 14px; width: 40px; height: 40px;">--</div>
+                        <div class="flex-col" style="gap: 2px;">
+                            <span id="admin-sidebar-name" class="d-block text-sm font-bold">Loading...</span>
+                            <span class="profile-indicator" style="margin-left:0; width:fit-content;">Professional Profile <i class='bx bx-chevron-right'></i></span>
+                        </div>
+                        <div class="flex flex-col gap-1 ml-auto">
+                            <button class="btn-icon circle outline sm" onclick="event.stopPropagation(); app.logout()" title="Logout"><i class='bx bx-log-out'></i></button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Admin Main Content -->
+            <main class="admin-content content-wrapper">
+                <!-- Dashboard -->
+                <div id="admin-dashboard" class="admin-tab active">
+                    <header class="admin-header">
+                        <div>
+                            <h2>Clinic Overview</h2>
+                            <p class="text-dim text-sm mt-0 text-muted">Welcome back! Here's what's happening today.</p>
+                        </div>
+                        <div id="admin-date-badge" class="date-badge border-badge text-sm bg-white soft-shadow"><i
+                                class='bx bx-calendar mr-1 text-dim'></i> Oct 20, 2026</div>
+                    </header>
+
+                    <div class="stats-grid mt-2">
+                        <div class="card stat-card hover-lift bg-white">
+                            <div class="stat-info">
+                                <h3 class="text-dim text-xs uppercase font-bold tracking-wide">Today's Appts</h3>
+                                <h2 id="admin-stat-today" class="mt-1 text-xl">0</h2>
+                            </div>
+                            <div class="stat-icon-wrap bg-primary-light text-primary">
+                                <i class='bx bx-calendar-check'></i>
+                            </div>
+                        </div>
+                        <div class="card stat-card hover-lift bg-white">
+                            <div class="stat-info">
+                                <h3 class="text-dim text-xs uppercase font-bold tracking-wide">Walk-ins</h3>
+                                <h2 id="admin-stat-walkins" class="mt-1 text-xl">0</h2>
+                            </div>
+                            <div class="stat-icon-wrap bg-success-light text-success">
+                                <i class='bx bx-walk'></i>
+                            </div>
+                        </div>
+                        <div class="card stat-card hover-lift bg-white">
+                            <div class="stat-info">
+                                <h3 class="text-dim text-xs uppercase font-bold tracking-wide">Est. Revenue</h3>
+                                <h2 id="admin-stat-revenue" class="mt-1 text-xl">$0</h2>
+                            </div>
+                            <div class="stat-icon-wrap bg-warning-light text-warning">
+                                <i class='bx bx-money'></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-panels mt-2 flex-row">
+                        <div class="card flex-2 detail-card bg-white">
+                            <div class="flex-center-between mb-1 border-bottom pb-1">
+                                <h3 class="card-title mb-0 border-none pb-0"><i
+                                        class='bx bx-time-five text-dim mr-1'></i> Upcoming Schedule</h3>
+                                <button class="btn-text text-sm font-bold" onclick="app.switchAdminTab('calendar')">View
+                                    Calendar <i class='bx bx-right-arrow-alt'></i></button>
+                            </div>
+                            <table class="data-table mt-1">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Patient</th>
+                                        <th>Service</th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-schedule-body">
+                                    <!-- Populated dynamically by app.renderAdminDashboard() -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card flex-1 detail-card bg-muted border-none pattern-bg-subtle">
+                            <h3 class="card-title text-center border-none"><i class='bx bx-zap text-dim mr-1'></i> Quick
+                                Actions</h3>
+                            <div class="action-grid mt-2">
+                                <button
+                                    class="btn-outline bg-white w-full text-left py-1 hover-lift soft-shadow-sm border-transparent"
+                                    onclick="app.openWalkinModal()"><i
+                                        class='bx bx-plus-circle text-dim mr-1'></i> Walk-in Booking</button>
+                                <button
+                                    class="btn-outline bg-white w-full text-left py-1 mt-1 hover-lift soft-shadow-sm border-transparent"
+                                    onclick="app.switchAdminTab('patients')"><i class='bx bx-search text-dim mr-1'></i>
+                                    Search Patient</button>
+                                <button
+                                    class="btn-outline bg-white w-full text-left py-1 mt-1 hover-lift soft-shadow-sm border-transparent"
+                                    onclick="app.triggerMockAction('Opening Invoice Generator', 'info')"><i
+                                        class='bx bx-receipt text-dim mr-1'></i> New Invoice</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Appointments Calendar -->
+                <div id="admin-calendar" class="admin-tab">
+                    <header class="admin-header">
+                        <div>
+                            <button class="btn-text text-dim text-sm p-0 mb-1 hover-lift"
+                                onclick="app.switchAdminTab('dashboard')"><i class='bx bx-arrow-back'></i> Back to
+                                Dashboard</button>
+                            <h2>Appointment Calendar</h2>
+                            <p class="text-dim text-sm mt-0 text-muted">Manage all clinic schedules.</p>
+                        </div>
+                        <button class="btn-primary shadow-hover"
+                            onclick="app.openWalkinModal()"><i
+                                class='bx bx-plus mr-1'></i> Add Walk-in</button>
+                    </header>
+                    <div class="card mt-2 detail-card bg-white">
+                        <div class="calendar-header flex-center-between mb-2">
+                            <h3 class="font-bold text-lg">October 2026</h3>
+                            <div class="btn-group">
+                                <button class="btn-icon outline rounded-l bg-white"
+                                    onclick="app.triggerMockAction('Loading past month...', 'info')"><i
+                                        class='bx bx-chevron-left'></i></button>
+                                <button class="btn-icon outline rounded-r border-l-none bg-white"
+                                    onclick="app.triggerMockAction('Loading next month...', 'info')"><i
+                                        class='bx bx-chevron-right'></i></button>
+                            </div>
+                        </div>
+                        <div class="calendar-grid bg-muted">
+                            <!-- Mon-Sun headers -->
+                            <div class="cal-day-header">Sun</div>
+                            <div class="cal-day-header">Mon</div>
+                            <div class="cal-day-header">Tue</div>
+                            <div class="cal-day-header">Wed</div>
+                            <div class="cal-day-header">Thu</div>
+                            <div class="cal-day-header">Fri</div>
+                            <div class="cal-day-header">Sat</div>
+
+                            <!-- Dynamic calendar days -->
+                            <div id="admin-calendar-days" class="calendar-inner-grid" style="display: contents;">
+                                <!-- Populated by app.renderAdminCalendar() -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Global Queue Page -->
+                <div id="admin-global-queue" class="admin-tab">
+                    <header class="admin-header flex-center-between">
+                        <div>
+                            <h2>Global Clinic Queue</h2>
+                            <p class="text-dim text-sm mt-0 text-muted">A complete overview of all bookings across every
+                                dentist.</p>
+                        </div>
+                        <button class="btn-text outline flex items-center bg-white shadow-sm"
+                            onclick="app.generateGlobalReport()">
+                            <i class='bx bx-download mr-1'></i> Generate Clinic Report
+                        </button>
+                    </header>
+
+                    <div class="card bg-white detail-card mt-2">
+                        <div class="search-wrap mb-2">
+                            <i class='bx bx-search search-icon'></i>
+                            <input type="text" id="global-queue-search" class="custom-input search-input"
+                                placeholder="Search by Patient, Dentist, or Service..."
+                                oninput="app.filterGlobalQueue(this.value)">
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Schedule</th>
+                                    <th>Patient</th>
+                                    <th>Medical Service</th>
+                                    <th>Assigned Dentist</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="global-queue-body">
+                                <!-- Populated dynamically by app.renderGlobalQueue() -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Service Setup Page -->
+                <div id="admin-services" class="admin-tab">
+                    <header class="admin-header">
+                        <div>
+                            <button class="btn-text text-dim text-sm p-0 mb-1 hover-lift"
+                                onclick="app.switchAdminTab('dashboard')"><i class='bx bx-arrow-back'></i> Back to
+                                Dashboard</button>
+                            <h2>Service Management</h2>
+                            <p class="text-dim text-sm mt-0 text-muted">Configure clinic services and pricing.</p>
+                        </div>
+                        <button class="btn-primary shadow-hover" onclick="app.openServiceModal()"><i
+                                class='bx bx-plus mr-1'></i> Add Service</button>
+                    </header>
+                    <div class="card mt-2 detail-card bg-white p-0 overflow-hidden">
+                        <table class="data-table">
+                            <thead class="bg-muted">
+                                <tr>
+                                    <th class="pl-2">Service Name</th>
+                                    <th>Duration</th>
+                                    <th>Price</th>
+                                    <th class="text-right pr-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-services-body">
+                                <!-- Populated by app.updateServiceList() -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Patients Page -->
+                <div id="admin-patients" class="admin-tab">
+                    <header class="admin-header">
+                        <div>
+                            <button class="btn-text text-dim text-sm p-0 mb-1 hover-lift"
+                                onclick="app.switchAdminTab('dashboard')"><i class='bx bx-arrow-back'></i> Back to
+                                Dashboard</button>
+                            <h2>Patient Records</h2>
+                            <p class="text-dim text-sm mt-0 text-muted">Browse directory and medical history logs.</p>
+                        </div>
+                    </header>
+
+                    <div class="card mt-2 bg-white detail-card">
+                        <div class="search-wrap mb-2">
+                            <i class='bx bx-search search-icon'></i>
+                            <input type="text" id="patient-list-search" class="custom-input search-input"
+                                placeholder="Search by name, email, or phone..."
+                                oninput="app.filterPatientList(this.value)">
+                        </div>
+                        <div class="overflow-hidden">
+                            <table class="data-table">
+                                <thead class="bg-muted">
+                                    <tr>
+                                        <th class="pl-2">Patient Name</th>
+                                        <th>Contact</th>
+                                        <th>Joined</th>
+                                        <th class="text-right pr-2">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-patient-list-body">
+                                    <!-- Populated by app.updatePatientList() -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Page -->
+                <div id="admin-settings" class="admin-tab">
+                    <header class="admin-header">
+                        <div>
+                            <button class="btn-text text-dim text-sm p-0 mb-1 hover-lift"
+                                onclick="app.switchAdminTab('dashboard')"><i class='bx bx-arrow-back'></i> Back to
+                                Dashboard</button>
+                            <h2>System Settings</h2>
+                            <p class="text-dim text-sm mt-0 text-muted">Optimize your clinic's operational flow and
+                                availability.</p>
+                        </div>
+                    </header>
+
+                    <div class="settings-container mt-3" style="max-width: 900px; margin: 0 auto;">
+                        <div class="grid-2 gap-2 responsive-flex-col">
+                            <!-- Operation Hours Card -->
+                            <div class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
+                                <div class="bg-primary-light p-2 border-bottom flex items-center">
+                                    <div class="stat-icon-wrap sm bg-white text-primary mr-1">
+                                        <i class='bx bx-time-five'></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm mb-0">Clinic Operations</h4>
+                                        <p class="text-xs text-dim">Set your standard opening and closing times.</p>
+                                    </div>
+                                </div>
+                                <div class="p-2">
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label
+                                                class="text-xs uppercase tracking-wider font-bold text-dim mb-1 d-block">Opening
+                                                Time</label>
+                                            <div class="input-modern">
+                                                <input type="time" id="set-clinic-open"
+                                                    class="modern-time-input w-full">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label
+                                                class="text-xs uppercase tracking-wider font-bold text-dim mb-1 d-block">Closing
+                                                Time</label>
+                                            <div class="input-modern">
+                                                <input type="time" id="set-clinic-close"
+                                                    class="modern-time-input w-full">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 pt-1 border-top border-dashed">
+                                        <p class="text-xs italic text-dim"><i class='bx bx-info-circle'></i> Patients
+                                            will only be able to book within these hours.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Staff Break Card -->
+                            <div class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
+                                <div class="bg-warning-light p-2 border-bottom flex items-center">
+                                    <div class="stat-icon-wrap sm bg-white text-warning mr-1">
+                                        <i class='bx bx-coffee-togo'></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm mb-0">Daily Break Policy</h4>
+                                        <p class="text-xs text-dim">Define shared break times for all specialists.</p>
+                                    </div>
+                                </div>
+                                <div class="p-2">
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label
+                                                class="text-xs uppercase tracking-wider font-bold text-dim mb-1 d-block">Break
+                                                Starts</label>
+                                            <div class="input-modern">
+                                                <input type="time" id="set-break-start"
+                                                    class="modern-time-input w-full">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label
+                                                class="text-xs uppercase tracking-wider font-bold text-dim mb-1 d-block">Break
+                                                Ends</label>
+                                            <div class="input-modern">
+                                                <input type="time" id="set-break-end" class="modern-time-input w-full">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 pt-1 border-top border-dashed">
+                                        <p class="text-xs italic text-dim"><i class='bx bx-lock-alt'></i> Slots between
+                                            these times will be blocked across all calendars.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-center mt-3 pt-2 border-top">
+                            <button class="btn-primary px-3 py-1 shadow-hover flex items-center gap-1"
+                                onclick="app.saveClinicSettings()">
+                                <i class='bx bx-check-double text-lg'></i> Apply System Configuration
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Manage Professionals (Dentists/Admins) -->
+                <div id="admin-dentists" class="admin-tab">
+                    <header class="admin-header">
+                        <div>
+                            <h2>Professional Directory</h2>
+                            <p class="text-dim text-sm mt-0 text-muted">Manage active clinic staff and specialists.</p>
+                        </div>
+                    </header>
+
+                    <div class="card bg-white detail-card mt-2">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Expert Name</th>
+                                    <th>Role / Position</th>
+                                    <th>Prof. ID</th>
+                                    <th>Contact</th>
+                                    <th class="text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-dentist-manage-list">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Approvals Page -->
+                <div id="admin-approvals" class="admin-tab">
+                    <header class="admin-header">
+                        <div>
+                            <h2>Professional Approvals</h2>
+                            <p class="text-dim text-sm mt-0 text-muted">Review and verify new Dentist/Admin
+                                registrations.</p>
+                        </div>
+                    </header>
+
+                    <div class="card bg-white detail-card mt-2">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Potential Expert</th>
+                                    <th>Role</th>
+                                    <th>Contact</th>
+                                    <th class="text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-approval-list">
+                                <!-- Populated dynamically -->
+                                <tr>
+                                    <td colspan="4" class="text-center py-2 text-dim italic">No pending requests.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </section>
+
+    </main>
+
+    <!-- Modals (Global) -->
+    <div id="patient-detail-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 1100; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="card bg-white soft-shadow"
+            style="width: 700px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
+            <div class="flex-center-between border-bottom pb-1 mb-2">
+                <div>
+                    <h3 id="detail-patient-name" class="font-bold text-xl mb-0">Patient Name</h3>
+                    <p id="detail-patient-email" class="text-xs text-dim">patient@email.com</p>
+                </div>
+                <button class="btn-icon circle outline" onclick="app.closePatientModal()"><i
+                        class='bx bx-x'></i></button>
+            </div>
+
+            <div class="grid-2 gap-2 mt-2">
+                <div class="card bg-muted border-none p-1">
+                    <h4 class="text-xs font-bold uppercase text-dim mb-1 border-bottom pb-1">Personal Info</h4>
+                    <div class="text-sm">
+                        <p><b>Phone:</b> <span id="detail-patient-phone">--</span></p>
+                        <p><b>DOB:</b> <span id="detail-patient-dob">--</span></p>
+                        <p><b>Reward Pts:</b> <span id="detail-patient-points" class="text-success font-bold">0</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="card bg-muted border-none p-1">
+                    <h4 class="text-xs font-bold uppercase text-dim mb-1 border-bottom pb-1">Medical Flags</h4>
+                    <div class="text-sm">
+                        <p><b>Allergies:</b> <span id="detail-patient-allergies" class="text-danger">--</span></p>
+                        <p><b>Medications:</b> <span id="detail-patient-medications">--</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-2">
+                <h4 class="font-bold border-bottom pb-1 mb-1"><i class='bx bx-history mr-1'></i> Appointment History
+                </h4>
+                <table class="data-table text-sm">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Service</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detail-patient-appts">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="service-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="card bg-white soft-shadow" style="width: 400px; max-width: 90%;">
+            <div class="flex-center-between border-bottom pb-1 mb-2">
+                <h3 id="service-modal-title" class="font-bold">Add New Service</h3>
+                <button class="btn-icon circle outline" onclick="app.closeServiceModal()"><i
+                        class='bx bx-x'></i></button>
+            </div>
+            <input type="hidden" id="service-modal-id">
+            <div class="form-grid">
+                <div class="form-group grid-full">
+                    <label>Service Name</label>
+                    <input type="text" id="new-service-name" class="custom-input bg-muted"
+                        placeholder="e.g. Tooth Extraction">
+                </div>
+                <div class="form-group">
+                    <label>Duration (mins)</label>
+                    <input type="number" id="new-service-duration" class="custom-input bg-muted" value="30">
+                </div>
+                <div class="form-group">
+                    <label>Price ($)</label>
+                    <input type="number" id="new-service-price" class="custom-input bg-muted" value="100">
+                </div>
+            </div>
+            <button id="service-modal-btn" class="btn-primary w-full mt-2" onclick="app.saveService()">Save Service</button>
+        </div>
+    </div>
+
+    <!-- Removed Mock Chatbot for SQL Version -->
+
+    <!-- Notification Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- NEW: Service Modal -->
+
+
+    <!-- Global Confirmation Modal -->
+    <div id="confirm-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 9500; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="card bg-white soft-shadow" style="width: 400px; max-width: 90%; text-align: center;">
+            <div class="flex-center mx-auto bg-muted circle mb-1" style="width: 54px; height: 54px;">
+                <i class='bx bx-help-circle text-xl text-dim'></i>
+            </div>
+            <h3 class="font-bold">Are you sure?</h3>
+            <p id="confirm-message" class="text-dim text-sm mt-1 px-1">This action cannot be undone.</p>
+            <div class="flex gap-1 mt-2 flex-wrap">
+                <button class="btn-outline flex-1 min-w-100" id="confirm-cancel-click"
+                    onclick="app.closeConfirm(false)">Cancel</button>
+                <button class="btn-primary flex-1 min-w-100" style="background: var(--danger); border: none;"
+                    onclick="app.closeConfirm(true)">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Booking Confirmation -->
+    <div id="booking-confirm-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 2500; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="card bg-white soft-shadow-lg" style="width: 480px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
+
+            <!-- Header -->
+            <div class="flex-center-between border-bottom pb-2 mb-2">
+                <div class="flex items-center gap-1">
+                    <div class="stat-icon-wrap sm bg-primary-light text-primary">
+                        <i class='bx bx-calendar-check'></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold mb-0">Confirm Your Appointment</h3>
+                        <p class="text-xs text-dim">Please review all details before confirming.</p>
+                    </div>
+                </div>
+                <button class="btn-icon circle outline" onclick="app.closeBookingConfirmModal()"><i class='bx bx-x'></i></button>
+            </div>
+
+            <!-- Alert Banner -->
+            <div class="card bg-warning-light border-none p-1 mb-2 flex items-center gap-1" style="border-left: 3px solid var(--warning);">
+                <i class='bx bx-error-circle text-warning text-lg'></i>
+                <p class="text-xs text-dim"><b>Double-check your details.</b> Once confirmed, this slot will be reserved for you.</p>
+            </div>
+
+            <!-- Booking Summary -->
+            <div class="flex-col gap-1">
+
+                <!-- Patient -->
+                <div class="list-row bg-muted border-none rounded" style="padding: 0.75rem 1rem;">
+                    <div class="stat-icon-wrap sm bg-white text-dim"><i class='bx bx-user'></i></div>
+                    <div class="flex-1">
+                        <p class="text-xs text-dim uppercase font-bold tracking-wide">Patient</p>
+                        <p id="bc-patient-name" class="font-bold text-sm mt-0">--</p>
+                    </div>
+                </div>
+
+                <!-- Dentist -->
+                <div class="list-row bg-muted border-none rounded" style="padding: 0.75rem 1rem;">
+                    <div class="stat-icon-wrap sm bg-white text-dim"><i class='bx bx-user-pin'></i></div>
+                    <div class="flex-1">
+                        <p class="text-xs text-dim uppercase font-bold tracking-wide">Dentist</p>
+                        <p id="bc-dentist-name" class="font-bold text-sm mt-0">--</p>
+                    </div>
+                </div>
+
+                <!-- Service -->
+                <div class="list-row bg-muted border-none rounded" style="padding: 0.75rem 1rem;">
+                    <div class="stat-icon-wrap sm bg-white text-dim"><i class='bx bx-plus-medical'></i></div>
+                    <div class="flex-1">
+                        <p class="text-xs text-dim uppercase font-bold tracking-wide">Service</p>
+                        <p id="bc-service-name" class="font-bold text-sm mt-0">--</p>
+                    </div>
+                    <div>
+                        <span id="bc-service-price" class="badge bg-primary-light text-primary font-bold text-sm">--</span>
+                    </div>
+                </div>
+
+                <!-- Date & Time -->
+                <div class="flex gap-1">
+                    <div class="list-row bg-muted border-none rounded flex-1" style="padding: 0.75rem 1rem;">
+                        <div class="stat-icon-wrap sm bg-white text-dim"><i class='bx bx-calendar'></i></div>
+                        <div class="flex-1">
+                            <p class="text-xs text-dim uppercase font-bold tracking-wide">Date</p>
+                            <p id="bc-date" class="font-bold text-sm mt-0">--</p>
+                        </div>
+                    </div>
+                    <div class="list-row bg-muted border-none rounded flex-1" style="padding: 0.75rem 1rem;">
+                        <div class="stat-icon-wrap sm bg-white text-dim"><i class='bx bx-time'></i></div>
+                        <div class="flex-1">
+                            <p class="text-xs text-dim uppercase font-bold tracking-wide">Time Slot</p>
+                            <p id="bc-time" class="font-bold text-sm mt-0">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Duration -->
+                <div class="list-row bg-muted border-none rounded" style="padding: 0.75rem 1rem;">
+                    <div class="stat-icon-wrap sm bg-white text-dim"><i class='bx bx-timer'></i></div>
+                    <div class="flex-1">
+                        <p class="text-xs text-dim uppercase font-bold tracking-wide">Estimated Duration</p>
+                        <p id="bc-duration" class="font-bold text-sm mt-0">--</p>
+                    </div>
+                </div>
+
+                <!-- Reward Redemption Section -->
+                <div id="booking-reward-section" class="mt-2 hidden">
+                    <div class="reward-offer-card p-2 rounded border-dashed flex-col" style="border-width: 2px;">
+                        <div class="flex-center-between mb-1">
+                            <div class="flex items-center gap-1">
+                                <i class='bx bxs-gift text-lg text-warning'></i>
+                                <div>
+                                    <p class="text-xs font-bold uppercase text-warning tracking-tight">exclusive Reward Offer</p>
+                                    <p class="text-xs text-dim">You have enough points for a discount!</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="text-xs font-bold text-dim mr-1">Use Points?</span>
+                                <input type="checkbox" id="use-points-toggle" onchange="app.toggleBookingRewards(this)" style="width: 20px; height: 20px; cursor: pointer;"> 
+                            </div>
+                        </div>
+                        
+                        <div id="booking-reward-controls" class="hidden border-top pt-1 mt-1">
+                            <div class="flex-col gap-1">
+                                <label class="text-xs font-bold text-dim uppercase">Select Your Reward:</label>
+                                <div class="flex gap-1 items-center">
+                                    <select id="booking-reward-select" class="custom-select flex-1 py-0 px-1 text-sm bg-white" style="height: 38px; margin-top:0;">
+                                        <option value="">Choosing a reward...</option>
+                                    </select>
+                                    <button class="btn-primary py-0 px-2" style="height: 38px;" onclick="app.applyRewardToBooking()">
+                                        Apply
+                                    </button>
+                                </div>
+                                <p id="booking-reward-msg" class="text-xs mt-1 hidden"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-1 mt-2 pt-2 border-top">
+                <button class="btn-outline flex-1" onclick="app.closeBookingConfirmModal()">
+                    <i class='bx bx-arrow-back mr-1'></i> Go Back & Edit
+                </button>
+                <button class="btn-primary flex-1 shadow-hover" onclick="app.submitBooking()">
+                    <i class='bx bx-check-circle mr-1'></i> Yes, Book Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Walk-in Booking (Admin) -->
+    <div id="walkin-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="card bg-white soft-shadow-lg" style="width: 550px; max-width: 95%; max-height: 92vh; overflow-y: auto;">
+
+            <!-- Header -->
+            <div class="flex-center-between border-bottom pb-2 mb-2">
+                <div class="flex items-center gap-1">
+                    <div class="stat-icon-wrap sm bg-success-light text-success">
+                        <i class='bx bx-walk'></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold mb-0">Walk-in Registration</h3>
+                        <p class="text-xs text-dim">Quickly assign a same-day patient.</p>
+                    </div>
+                </div>
+                <button class="btn-icon circle outline" onclick="app.closeWalkinModal()"><i class='bx bx-x'></i></button>
+            </div>
+
+            <!-- Patient Selection -->
+            <div class="card bg-muted border-none p-2 mb-2">
+                <h4 class="font-bold text-sm mb-1"><i class='bx bx-user mr-1'></i> 1. Patient Identification</h4>
+                
+                <div class="auth-tabs bg-white mt-1 mb-1 soft-shadow-sm" style="padding: 2px;">
+                    <button class="tab-btn active text-sm py-1" id="walkin-tab-search" onclick="app.toggleWalkinPatientTab('search')" style="flex: 1;">Existing Patient</button>
+                    <button class="tab-btn text-sm py-1" id="walkin-tab-new" onclick="app.toggleWalkinPatientTab('new')" style="flex: 1;">New Patient</button>
+                </div>
+
+                <div id="walkin-sec-search">
+                    <div class="search-wrap bg-white mb-1 shadow-sm border">
+                        <i class='bx bx-search search-icon text-dim'></i>
+                        <input type="text" id="walkin-search-input" class="custom-input search-input bg-transparent border-none" placeholder="Search name or phone..." oninput="app.searchWalkinPatient(this.value)">
+                    </div>
+                    <div id="walkin-search-results" class="bg-white rounded overflow-hidden max-h-32 overflow-y-auto hidden">
+                        <!-- Populated dynamically -->
+                    </div>
+                    <div id="walkin-selected-patient-badge" class="bg-primary-light text-primary p-1 rounded font-bold text-sm hidden flex-center-between mt-1">
+                        <span id="walkin-selected-patient-name">Patient Name</span>
+                        <button class="btn-text p-0 text-primary text-xs" onclick="app.clearWalkinPatient()"><i class='bx bx-x-circle text-lg'></i></button>
+                    </div>
+                    <input type="hidden" id="walkin-patient-id">
+                </div>
+
+                <div id="walkin-sec-new" class="hidden">
+                    <div class="form-grid gap-1">
+                        <div class="form-group grid-full">
+                            <input type="text" id="walkin-new-name" class="custom-input bg-white" placeholder="Full Name (Required)">
+                        </div>
+                        <div class="form-group grid-full">
+                            <input type="tel" id="walkin-new-phone" class="custom-input bg-white" placeholder="Contact Number (Required)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2 gap-2">
+                <!-- Appointment Details -->
+                <div class="card bg-muted border-none p-2 mb-2">
+                    <h4 class="font-bold text-sm mb-1"><i class='bx bx-list-check mr-1'></i> 2. Service & Expert</h4>
+                    <div class="form-group mb-1">
+                        <label class="text-xs font-bold uppercase text-dim">Requested Service</label>
+                        <div class="select-wrapper mt-0">
+                            <select id="walkin-service" class="custom-select bg-white shadow-sm" onchange="app.checkWalkinAutoAssign()">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-xs font-bold uppercase text-dim flex-center-between mb-1">
+                            <span>Dentist</span>
+                            <label class="flex items-center gap-1 text-primary cursor-pointer text-xs mb-0 bg-primary-light px-1 rounded">
+                                <input type="checkbox" id="walkin-auto-dentist" checked onchange="app.toggleWalkinDentist()"> Auto-Assign
+                            </label>
+                        </label>
+                        <div class="select-wrapper mt-0">
+                            <select id="walkin-dentist" class="custom-select bg-white shadow-sm" disabled>
+                                <option value="auto">Auto-Assign (Least Busy)</option>
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Slot -->
+                <div class="card bg-muted border-none p-2 mb-2">
+                    <h4 class="font-bold text-sm mb-1"><i class='bx bx-time mr-1'></i> 3. Time Allocation</h4>
+                     <label class="flex items-center gap-1 text-primary cursor-pointer text-xs mb-1 bg-primary-light px-1 rounded" style="width: fit-content;">
+                        <input type="checkbox" id="walkin-auto-time" checked onchange="app.toggleWalkinTime()"> Auto-allocate next slot
+                    </label>
+                    <div id="walkin-manual-time" class="form-group opacity-50" style="pointer-events: none;">
+                        <label class="text-xs font-bold uppercase text-dim">Start Time</label>
+                        <input type="time" id="walkin-time" class="custom-input bg-white shadow-sm mt-0">
+                    </div>
+                    <div id="walkin-result-badge" class="bg-success-light text-success p-1 rounded text-xs font-bold mt-1 text-center hidden">
+                        <!-- Preview info -->
+                    </div>
+					<input type="hidden" id="walkin-date" value="">
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-1 mt-1 pt-2 border-top">
+                <button class="btn-outline flex-1" onclick="app.closeWalkinModal()">
+                    <i class='bx bx-x mr-1'></i> Cancel
+                </button>
+                <button class="btn-primary flex-1 shadow-hover" id="walkin-submit-btn" onclick="app.submitWalkin()">
+                    <i class='bx bx-check-circle mr-1'></i> Confirm Booking
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <!-- MODAL: Edit Profile -->
+    <div id="profile-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="card bg-white soft-shadow" style="width: 450px; max-width: 95%;">
+            <div class="flex-center-between border-bottom pb-1 mb-2">
+                <h3 class="font-bold"><i class='bx bx-user-circle mr-1'></i>Update Profile</h3>
+                <button class="btn-icon circle outline" onclick="app.closeProfileModal()"><i class='bx bx-x'></i></button>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group grid-full">
+                    <label class="text-xs font-bold uppercase text-dim">Full Professional Name</label>
+                    <input type="text" id="profile-name" class="custom-input bg-muted">
+                </div>
+                <div class="form-group">
+                    <label class="text-xs font-bold uppercase text-dim">Email Address</label>
+                    <input type="email" id="profile-email" class="custom-input bg-muted">
+                </div>
+                <div class="form-group">
+                    <label class="text-xs font-bold uppercase text-dim">Phone Number</label>
+                    <input type="tel" id="profile-phone" class="custom-input bg-muted">
+                </div>
+                
+                <!-- Patient Specific Fields -->
+                <div id="profile-patient-fields" class="grid-full hidden pt-1 border-top mt-1">
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="text-xs font-bold uppercase text-dim">Date of Birth</label>
+                            <input type="date" id="profile-dob" class="custom-input bg-muted">
+                        </div>
+                        <div class="form-group">
+                            <label class="text-xs font-bold uppercase text-dim">Emergency Contact Name</label>
+                            <input type="text" id="profile-emergency-name" class="custom-input bg-muted">
+                        </div>
+                        <div class="form-group">
+                            <label class="text-xs font-bold uppercase text-dim">Emergency Contact Number</label>
+                            <input type="tel" id="profile-emergency-phone" class="custom-input bg-muted">
+                        </div>
+                        <div class="form-group">
+                            <label class="text-xs font-bold uppercase text-dim">Allergies</label>
+                            <textarea id="profile-allergies" class="custom-input bg-muted" rows="1"></textarea>
+                        </div>
+                        <div class="form-group grid-full">
+                            <label class="text-xs font-bold uppercase text-dim">Current Medications</label>
+                            <textarea id="profile-medications" class="custom-input bg-muted" rows="1"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Fields (Only shown for staff) -->
+                <div id="profile-staff-fields" class="grid-full hidden pt-1 border-top mt-1">
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="text-xs font-bold uppercase text-dim">Professional ID</label>
+                            <input type="text" id="profile-pro-id" class="custom-input bg-muted">
+                        </div>
+                        <div class="form-group">
+                            <label class="text-xs font-bold uppercase text-dim">Clinical Position</label>
+                            <input type="text" id="profile-position" class="custom-input bg-muted">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-2 pt-1">
+                <button class="btn-primary w-full shadow-hover" onclick="app.updateProfile()">Save Changes</button>
+                <p class="text-center text-xs text-dim mt-1 italic">Changes will reflect immediately across clinical records.</p>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: Rewards & Points -->
+    <div id="rewards-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 2500; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="card bg-white soft-shadow" style="width: 550px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
+            <div class="flex-center-between border-bottom pb-1 mb-2">
+                <div>
+                    <h3 class="font-bold"><i class='bx bx-star mr-1 text-warning'></i> loyalty Rewards</h3>
+                    <p class="text-xs text-dim">Redeem your points for discounts and free services.</p>
+                </div>
+                <button class="btn-icon circle outline" onclick="app.closeRewardsModal()"><i class='bx bx-x'></i></button>
+            </div>
+
+            <div class="flex-center-between bg-muted p-2 rounded mb-2">
+                <div>
+                    <p class="text-xs text-dim uppercase font-bold tracking-tight">Available Balance</p>
+                    <h2 class="text-2xl font-bold text-primary"><span id="rewards-total-balance">0</span> <span class="text-sm font-medium">Points</span></h2>
+                </div>
+                <div class="logo-icon bg-warning text-white" style="width: 50px; height: 50px; font-size: 24px;">
+                    <i class='bx bx-coin-stack'></i>
+                </div>
+            </div>
+
+            <div class="tabs mb-2 border-bottom">
+                <button class="tab-btn active" data-target="reward-options" onclick="app.switchRewardsTab('options', this)">Redeem Points</button>
+                <button class="tab-btn" data-target="reward-history" onclick="app.switchRewardsTab('history', this)">Point History</button>
+            </div>
+
+            <div id="reward-options" class="reward-tab-content">
+                <div class="grid-2 gap-1" id="rewards-list-container">
+                    <!-- Populated dynamically -->
+                    <div class="text-center py-2 text-dim italic grid-full">Loading available rewards...</div>
+                </div>
+            </div>
+
+            <div id="reward-history" class="reward-tab-content hidden">
+                <div class="overflow-hidden">
+                    <table class="data-table text-xs">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Action</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reward-history-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-2 pt-1 border-top">
+                <p class="text-xs text-dim text-center"><i class='bx bx-info-circle mr-1'></i> Points are earned automatically after each completed visit.</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
