@@ -474,7 +474,8 @@
                                     <div class="form-group">
                                         <label>Dental Service</label>
                                         <div class="select-wrapper">
-                                            <select id="booking-service" class="custom-select bg-muted shadow-sm">
+                                            <select id="booking-service" class="custom-select bg-muted shadow-sm"
+                                                onchange="app.checkAvailability()">
                                                 <option value="">Loading services...</option>
                                             </select>
                                         </div>
@@ -575,7 +576,10 @@
                                 </tr>
                             </thead>
                             <tbody id="billing-history-body">
-                                <tr><td colspan="4" class="text-center py-2 text-dim"><i class="bx bx-loader-alt bx-spin mr-1"></i> Loading invoices...</td></tr>
+                                <tr>
+                                    <td colspan="4" class="text-center py-2 text-dim"><i
+                                            class="bx bx-loader-alt bx-spin mr-1"></i> Loading invoices...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -590,7 +594,7 @@
                 <div class="logo mt-1 mb-2">
                     <div class="logo-icon"><i class='bx bx-plus-medical'></i></div>
                     DentAssist
-                    <span class="badge text-xs ml-1 border-badge badge-admin">Admin</span>
+                    <span id="admin-role-badge" class="badge text-xs ml-1 border-badge badge-admin">Admin</span>
                 </div>
                 <ul class="sidebar-menu">
                     <li class="active" onclick="app.switchAdminTab('dashboard', this)"><i class='bx bx-grid-alt'></i>
@@ -608,7 +612,7 @@
                     <li onclick="app.switchAdminTab('patients', this)">
                         <i class='bx bx-user-circle'></i> Patients
                     </li>
-                    <li onclick="app.switchAdminTab('reports', this)">
+                    <li id="menu-reports" onclick="app.switchAdminTab('reports', this)">
                         <i class='bx bx-pie-chart-alt-2'></i> Analytics
                     </li>
                     <li id="menu-dentists" class="hidden" onclick="app.switchAdminTab('dentists', this)">
@@ -617,10 +621,12 @@
                     <li id="menu-approvals" class="hidden" onclick="app.switchAdminTab('approvals', this)">
                         <i class='bx bx-user-check'></i> Approvals
                     </li>
-                    <li onclick="app.switchAdminTab('archive', this)"><i class='bx bx-archive-in'></i>
+                    <li id="menu-archive" class="hidden" onclick="app.switchAdminTab('archive', this)"><i
+                            class='bx bx-archive-in'></i>
                         <span>Archive</span>
                     </li>
-                    <li onclick="app.switchAdminTab('settings', this)"><i class='bx bx-cog'></i> <span>Settings</span>
+                    <li id="menu-settings" onclick="app.switchAdminTab('settings', this)"><i class='bx bx-cog'></i>
+                        <span>Settings</span>
                     </li>
                 </ul>
                 <div class="sidebar-footer">
@@ -629,8 +635,11 @@
                             style="border-radius: 50%; font-size: 14px; width: 40px; height: 40px;">--</div>
                         <div class="flex-col" style="gap: 2px;">
                             <span id="admin-sidebar-name" class="d-block text-sm font-bold">Loading...</span>
-                            <span class="profile-indicator" style="margin-left:0; width:fit-content;">Professional
-                                Profile <i class='bx bx-chevron-right'></i></span>
+                            <span id="admin-sidebar-role"
+                                class="text-xs text-dim block uppercase font-bold tracking-tight"
+                                style="font-size: 9px; margin-bottom: 2px;">--</span>
+                            <span class="profile-indicator" style="margin-left:0; width:fit-content;">Profile <i
+                                    class='bx bx-chevron-right'></i></span>
                         </div>
                         <div class="flex flex-col gap-1 ml-auto">
                             <button class="btn-icon circle outline sm" onclick="event.stopPropagation(); app.logout()"
@@ -646,7 +655,7 @@
                 <div id="admin-dashboard" class="admin-tab active">
                     <header class="admin-header">
                         <div>
-                            <h2>Clinic Overview</h2>
+                            <h2 id="admin-dashboard-title">Clinic Overview</h2>
                             <p class="text-dim text-sm mt-0 text-muted">Welcome back! Here's what's happening today.</p>
                         </div>
                         <div id="admin-date-badge" class="date-badge border-badge text-sm bg-white soft-shadow"><i
@@ -698,8 +707,9 @@
                                         <th>Time</th>
                                         <th>Patient</th>
                                         <th>Service</th>
+                                        <th id="header-dentist-col">Dentist</th>
                                         <th>Status</th>
-                                        <th></th>
+                                        <th class="text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-schedule-body">
@@ -731,7 +741,8 @@
                     <div class="card detail-card bg-white mt-2">
                         <div class="flex-center-between mb-1 border-bottom pb-1">
                             <h3 class="card-title mb-0 border-none pb-0"><i
-                                    class='bx bx-check-double text-success mr-1'></i> Completed Appointments (Today)</h3>
+                                    class='bx bx-check-double text-success mr-1'></i> Completed Appointments (Today)
+                            </h3>
                         </div>
                         <table class="data-table mt-1">
                             <thead>
@@ -744,7 +755,10 @@
                                 </tr>
                             </thead>
                             <tbody id="admin-completed-body">
-                                <tr><td colspan="5" class="text-center py-2 text-dim">Loading completed appointments...</td></tr>
+                                <tr>
+                                    <td colspan="5" class="text-center py-2 text-dim">Loading completed appointments...
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -913,7 +927,7 @@
                     <div class="settings-container mt-3" style="max-width: 900px; margin: 0 auto;">
                         <div class="grid-2 gap-2 responsive-flex-col">
                             <!-- Operation Hours Card -->
-                            <div class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
+                            <div id="card-operation-hours" class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
                                 <div class="bg-primary-light p-2 border-bottom flex items-center">
                                     <div class="stat-icon-wrap sm bg-white text-primary mr-1">
                                         <i class='bx bx-time-five'></i>
@@ -952,7 +966,7 @@
                             </div>
 
                             <!-- Staff Break Card -->
-                            <div class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
+                            <div id="card-break-policy" class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
                                 <div class="bg-warning-light p-2 border-bottom flex items-center">
                                     <div class="stat-icon-wrap sm bg-white text-warning mr-1">
                                         <i class='bx bx-coffee-togo'></i>
@@ -990,7 +1004,7 @@
                             </div>
 
                             <!-- Personal Availability Card (New) -->
-                            <div class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
+                            <div id="card-personal-status" class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
                                 <div class="bg-success-light p-2 border-bottom flex items-center">
                                     <div class="stat-icon-wrap sm bg-white text-success mr-1">
                                         <i class='bx bx-user-check'></i>
@@ -1044,8 +1058,12 @@
                                 insights.</p>
                         </div>
                         <div class="flex gap-1">
-                            <button class="btn-outline bg-white soft-shadow-sm" onclick="app.exportReport('print')"><i
-                                    class='bx bx-printer mr-1'></i> Print</button>
+                            <button class="btn-outline bg-white soft-shadow-sm flex items-center" onclick="app.exportReport('print')">
+                                <i class='bx bxs-file-pdf mr-1 text-danger'></i> Download PDF
+                            </button>
+                            <button class="btn-primary soft-shadow-sm flex items-center" onclick="app.exportReport('csv')">
+                                <i class='bx bx-file mr-1'></i> Download CSV
+                            </button>
                         </div>
                     </header>
 
@@ -1177,10 +1195,12 @@
                                                 class="font-bold">0</span></div>
                                         <div class="flex-center-between border-bottom border-dashed pb-0 mb-0 mt-1">
                                             <span class="text-danger">Cancelled</span> <span id="report-appts-cancelled"
-                                                class="font-bold">0</span></div>
+                                                class="font-bold">0</span>
+                                        </div>
                                         <div class="flex-center-between border-bottom border-dashed pb-0 mb-0 mt-1">
                                             <span class="text-primary">Walk-ins</span> <span id="report-appts-walkin"
-                                                class="font-bold">0</span></div>
+                                                class="font-bold">0</span>
+                                        </div>
                                         <div class="flex-center-between pb-0 mb-0 mt-1"><span
                                                 class="text-warning">Upcoming</span> <span id="report-appts-upcoming"
                                                 class="font-bold">0</span></div>
@@ -1198,7 +1218,8 @@
                                         <p class="text-dim mb-1 font-bold">Patient Metrics</p>
                                         <div class="flex-center-between border-bottom border-dashed pb-0 mb-0">
                                             <span>Total Seen</span> <span id="report-pat-total"
-                                                class="font-bold">0</span></div>
+                                                class="font-bold">0</span>
+                                        </div>
                                         <div class="flex-center-between pb-0 mb-0 mt-1"><span class="text-success">New
                                                 Registrations</span> <span id="report-pat-new"
                                                 class="font-bold">0</span></div>

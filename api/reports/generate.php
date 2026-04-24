@@ -10,11 +10,10 @@ include_once '../config/database.php';
 $start_date = isset($_GET['start_date']) ? htmlspecialchars(strip_tags($_GET['start_date'])) : date('Y-m-01');
 $end_date = isset($_GET['end_date']) ? htmlspecialchars(strip_tags($_GET['end_date'])) : date('Y-m-t');
 
-// Validate dates
-if (!$start_date || !$end_date) {
-    http_response_code(400);
-    echo json_encode(["status" => "error", "message" => "Valid start_date and end_date are required."]);
-    exit;
+$dentist_id = isset($_GET['dentist_id']) ? (int)$_GET['dentist_id'] : 0;
+$dentist_filter = "";
+if ($dentist_id > 0) {
+    $dentist_filter = " AND dentist_id = $dentist_id ";
 }
 
 $report_data = [
@@ -36,7 +35,7 @@ try {
             SUM(CASE WHEN status = 'walk-in' THEN 1 ELSE 0 END) AS walk_in,
             SUM(CASE WHEN status IN ('upcoming', 'pending') THEN 1 ELSE 0 END) AS upcoming
         FROM appointments
-        WHERE appointment_date BETWEEN ? AND ?
+        WHERE appointment_date BETWEEN ? AND ? $dentist_filter
     ");
     $stmt->bind_param("ss", $start_date, $end_date);
     $stmt->execute();
@@ -51,7 +50,7 @@ try {
         FROM appointments a
         JOIN services s ON a.service_id = s.id
         LEFT JOIN invoices i ON a.id = i.appointment_id
-        WHERE a.appointment_date BETWEEN ? AND ?
+        WHERE a.appointment_date BETWEEN ? AND ? $dentist_filter
         GROUP BY s.id, s.name
         ORDER BY usage_count DESC
     ");
@@ -67,13 +66,13 @@ try {
         SELECT 
             COUNT(DISTINCT patient_id) as total_patients_seen
         FROM appointments
-        WHERE appointment_date BETWEEN ? AND ? AND status != 'cancelled'
+        WHERE appointment_date BETWEEN ? AND ? AND status != 'cancelled' $dentist_filter
     ");
     $stmt->bind_param("ss", $start_date, $end_date);
     $stmt->execute();
     $patient_data = $stmt->get_result()->fetch_assoc();
     
-    // Calculate new patients in this period
+    // Calculate new patients in this period (Global clinic stat, usually kept for context)
     $stmt = $conn->prepare("
         SELECT COUNT(id) as new_patients
         FROM users
@@ -96,13 +95,14 @@ try {
             COALESCE(SUM(CASE WHEN i.status != 'paid' THEN i.total_amount ELSE 0 END), 0) AS total_unpaid
         FROM invoices i
         LEFT JOIN appointments a ON i.appointment_id = a.id
-        WHERE a.appointment_date BETWEEN ? AND ?
+        WHERE a.appointment_date BETWEEN ? AND ? $dentist_filter
     ");
     $stmt->bind_param("ss", $start_date, $end_date);
     $stmt->execute();
     $report_data['revenue'] = $stmt->get_result()->fetch_assoc();
 
     // E. Dentist Activity Report
+    $activity_filter = $dentist_id > 0 ? " AND u.id = $dentist_id " : "";
     $stmt = $conn->prepare("
         SELECT 
             u.full_name AS dentist_name,
@@ -110,7 +110,7 @@ try {
             COUNT(DISTINCT a.patient_id) AS unique_patients
         FROM appointments a
         JOIN users u ON a.dentist_id = u.id
-        WHERE a.appointment_date BETWEEN ? AND ?
+        WHERE a.appointment_date BETWEEN ? AND ? $activity_filter
         GROUP BY u.id, u.full_name
         ORDER BY total_appointments DESC
     ");

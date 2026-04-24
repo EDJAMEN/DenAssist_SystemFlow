@@ -1910,3 +1910,37 @@ button {
     cursor: pointer;
     accent-color: var(--black);
 }
+
+/* --- Print Styles --- */
+@media print {
+    .sidebar, .admin-header button, .admin-header .btn-text, .admin-tab:not(.active), .settings-container, .card:has(.form-grid), .btn-primary, .btn-outline, .btn-text, .admin-date-badge {
+        display: none !important;
+    }
+    
+    .admin-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+    
+    .admin-tab.active {
+        display: block !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #eee !important;
+    }
+    
+    body {
+        background: white !important;
+    }
+    
+    #admin-reports {
+        display: block !important;
+    }
+    
+    .hidden-print {
+        display: none !important;
+    }
+}

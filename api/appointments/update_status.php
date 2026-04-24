@@ -57,9 +57,9 @@ if (!empty($data->appointment_id) && !empty($data->status)) {
             $auto_cancel->bind_param("issssssss", $id, $current['appointment_date'], $current['dentist_id'], $current['start_time'], $current['end_time'], $current['start_time'], $current['end_time'], $current['start_time'], $current['end_time']);
             $auto_cancel->execute();
 
-            // 2. Award Booking Bonus (1%)
-            $points_to_award = max(5, floor($current['price'] * 0.01));
-            $award_reason = "Booking bonus (Approved - 1% of ₱" . $current['price'] . ")";
+            // 2. Award Booking Bonus (0.5%)
+            $points_to_award = max(1, floor($current['price'] * 0.005));
+            $award_reason = "Booking bonus (Approved - 0.5% of ₱" . $current['price'] . ")";
             $conn->query("UPDATE patients_meta SET reward_points = reward_points + $points_to_award WHERE user_id = $patient_id");
             $conn->query("INSERT INTO reward_points_logs (patient_id, points, action, reason) VALUES ($patient_id, $points_to_award, 'earned', '$award_reason')");
 
@@ -92,8 +92,8 @@ if (!empty($data->appointment_id) && !empty($data->status)) {
 
         // --- C. Logic for COMPLETION ---
         if ($new_status === 'completed' && $old_status !== 'completed') {
-            $points_to_award = max(10, floor($current['price'] * 0.04));
-            $comp_reason = "Visit completed (4% of ₱" . $current['price'] . ")";
+            $points_to_award = max(2, floor($current['price'] * 0.015));
+            $comp_reason = "Visit completed (1.5% of ₱" . $current['price'] . ")";
             $conn->query("UPDATE patients_meta SET reward_points = reward_points + $points_to_award WHERE user_id = $patient_id");
             $conn->query("INSERT INTO reward_points_logs (patient_id, points, action, reason) VALUES ($patient_id, $points_to_award, 'earned', '$comp_reason')");
 

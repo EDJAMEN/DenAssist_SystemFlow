@@ -167,17 +167,24 @@ const app = {
                     this.renderPatientDashboard();
                     this.switchScreen('patient-section');
                 } else {
-                    // Admin logic
-                    const approvalMenu = document.getElementById('menu-approvals');
-                    const dentistMenu = document.getElementById('menu-dentists');
+                    // Admin logic — Access Control for Super Admin (Master)
+                    const masterMenus = ['menu-approvals', 'menu-dentists', 'menu-archive'];
 
-                    if (result.user.is_master) {
-                        if (approvalMenu) approvalMenu.classList.remove('hidden');
-                        if (dentistMenu) dentistMenu.classList.remove('hidden');
-                    } else {
-                        if (approvalMenu) approvalMenu.classList.add('hidden');
-                        if (dentistMenu) dentistMenu.classList.add('hidden');
-                    }
+                    masterMenus.forEach(menuId => {
+                        const el = document.getElementById(menuId);
+                        if (el) {
+                            if (result.user.is_master) {
+                                el.classList.remove('hidden');
+                            } else {
+                                el.classList.add('hidden');
+                            }
+                        }
+                    });
+
+                    // Exception: Staff/Dentists might still need Archive for cancelled appointments (as requested earlier)
+                    // But if the user wants Super Admin to be truly unique, we restrict it.
+                    // Let's keep Archive available only to Master/Admins if specifically requested, 
+                    // but for now, we'll follow the "Super Admin is Unique" rule.
 
                     this.renderAdminDashboard();
                     this.switchScreen('admin-section');
@@ -688,12 +695,44 @@ const app = {
         if (adminName) adminName.textContent = user.name;
 
         const adminRole = document.getElementById('admin-sidebar-role');
-        if (adminRole) adminRole.textContent = user.role === 'admin' ? 'Administrator' : 'Staff';
+        const roleBadge = document.getElementById('admin-role-badge');
+
+        if (user.is_master) {
+            if (adminRole) adminRole.textContent = 'Master Administrator';
+            if (roleBadge) {
+                roleBadge.textContent = 'MASTER';
+                roleBadge.style.background = 'var(--primary)';
+                roleBadge.style.color = 'white';
+                roleBadge.style.borderColor = 'var(--primary)';
+            }
+        } else {
+            if (adminRole) adminRole.textContent = user.role === 'admin' ? 'Administrator' : (user.role === 'staff' ? 'Clinic Staff' : 'Dentist');
+            if (roleBadge) {
+                roleBadge.textContent = user.role.toUpperCase();
+                roleBadge.style.background = 'transparent';
+                roleBadge.style.color = 'var(--dim)';
+                roleBadge.style.borderColor = 'var(--border)';
+            }
+        }
+
+        // Dashboard table: Only show Dentist column to Master Admin
+        const dentistColHeader = document.getElementById('header-dentist-col');
+        if (dentistColHeader) {
+            if (user.is_master) dentistColHeader.classList.remove('hidden');
+            else dentistColHeader.classList.add('hidden');
+        }
 
         const adminAvatar = document.getElementById('admin-avatar-sidebar');
+        const dashboardTitle = document.getElementById('admin-dashboard-title');
+
+        if (dashboardTitle) {
+            dashboardTitle.textContent = user.is_master ? "Clinic Overview" : "Staff Dashboard";
+        }
+
         if (adminAvatar) {
             const initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().substring(0, 2);
             adminAvatar.textContent = initials;
+            if (user.is_master) adminAvatar.style.background = 'var(--primary)';
         }
 
         // Update Admin Dashboard Header Date
@@ -706,7 +745,7 @@ const app = {
 
         // Fetch appointments from backend for admin view
         try {
-            // Isolation Rule: Only fetch current dentist's data if NOT Master Admin
+            // Isolation Rule: Only fetch current user's data if NOT Master Admin (as requested: only master sees all)
             const dentistFilter = !user.is_master ? `?dentist_id=${user.id}` : '';
             const response = await fetch(`api/appointments/get.php${dentistFilter}`);
             const result = await response.json();
@@ -769,6 +808,14 @@ const app = {
                                 `;
                             }
 
+                            const dentistColHtml = user.is_master ? `
+                                <td>
+                                    <div class="flex items-center gap-1">
+                                        <div class="avatar-tiny bg-muted text-dim" style="font-size: 9px;">${apt.dentist_name ? apt.dentist_name[0] : 'U'}</div>
+                                        <span class="text-xs font-medium">${apt.dentist_name || 'Unassigned'}</span>
+                                    </div>
+                                </td>` : '';
+
                             rows += `
                             <tr class="table-row-hover" onclick="app.viewPatientDetails(${apt.patient_id})">
                                 <td class="text-dim text-xs">${aptDate}</td>
@@ -783,6 +830,7 @@ const app = {
                                     </div>
                                 </td>
                                 <td><span class="info-badge">${apt.service_name}</span></td>
+                                ${dentistColHtml}
                                 <td><span class="badge ${statusClass} uppercase text-xs">${apt.status}</span></td>
                                 <td class="text-right" onclick="event.stopPropagation()">${actionsHtml}</td>
                             </tr>`;
@@ -953,7 +1001,8 @@ const app = {
         this.showLoader("Scanning availability...");
 
         try {
-            const response = await fetch(`api/appointments/get_available_slots.php?dentist_id=${dentistId}&date=${dateInput}`);
+            const serviceId = document.getElementById('booking-service').value;
+            const response = await fetch(`api/appointments/get_available_slots.php?dentist_id=${dentistId}&date=${dateInput}&service_id=${serviceId}`);
             const result = await response.json();
             this.hideLoader();
 
@@ -1412,7 +1461,7 @@ const app = {
         calendarGrid.innerHTML = '<div class="col-span-full py-5 text-center text-dim"><i class="bx bx-loader-alt bx-spin mr-1"></i> Syncing Calendar...</div>';
 
         try {
-            // Isolation Rule: Only fetch current dentist's appointments if NOT Master Admin
+            // Isolation Rule: Only fetch current user's appointments if NOT Master Admin
             const dentistFilter = !this.currentUser.is_master ? `?dentist_id=${this.currentUser.id}` : '';
             const response = await fetch(`api/appointments/get.php${dentistFilter}`);
             const result = await response.json();
@@ -1771,6 +1820,29 @@ const app = {
                 document.getElementById('set-clinic-close').value = s.clinic_close || '';
                 document.getElementById('set-break-start').value = s.break_start || '';
                 document.getElementById('set-break-end').value = s.break_end || '';
+                
+                // Minimal Design for Staff: Only show Personal Status
+                const opCard = document.getElementById('card-operation-hours');
+                const brCard = document.getElementById('card-break-policy');
+                
+                if (this.currentUser && !this.currentUser.is_master) {
+                    if (opCard) opCard.classList.add('hidden');
+                    if (brCard) brCard.classList.add('hidden');
+                } else {
+                    if (opCard) opCard.classList.remove('hidden');
+                    if (brCard) brCard.classList.remove('hidden');
+                    
+                    // Role-based Labeling for Master
+                    const groupTitle = document.getElementById('settings-group-title');
+                    const groupDesc = document.getElementById('settings-group-desc');
+                    const breakTitle = document.getElementById('break-group-title');
+                    const breakDesc = document.getElementById('break-group-desc');
+
+                    if (groupTitle) groupTitle.textContent = "Global Clinic Operations";
+                    if (groupDesc) groupDesc.textContent = "Define the clinic's standard operating hours for all staff.";
+                    if (breakTitle) breakTitle.textContent = "Global Break Policy";
+                    if (breakDesc) breakDesc.textContent = "Standard break times applied to the entire clinic.";
+                }
 
                 // NEW: Initialize personal status toggle from current session
                 if (this.currentUser) {
@@ -1917,7 +1989,8 @@ const app = {
         body.innerHTML = '<tr><td colspan="5" class="text-center py-2"><i class="bx bx-loader-alt bx-spin mr-1"></i> Syncing Clinic Queue...</td></tr>';
 
         try {
-            const response = await fetch('api/appointments/get.php');
+            const dentistFilter = !this.currentUser.is_master ? `?dentist_id=${this.currentUser.id}` : '';
+            const response = await fetch(`api/appointments/get.php${dentistFilter}`);
             const result = await response.json();
 
             if (result.status === 'success') {
@@ -2840,11 +2913,13 @@ const app = {
 
         this.showLoader("Aggregating report data...");
         try {
-            const res = await fetch(`api/reports/generate.php?start_date=${start}&end_date=${end}`);
+            const dentistParam = !this.currentUser.is_master ? `&dentist_id=${this.currentUser.id}` : '';
+            const res = await fetch(`api/reports/generate.php?start_date=${start}&end_date=${end}${dentistParam}`);
             const result = await res.json();
             this.hideLoader();
 
             if (result.status === 'success') {
+                this.lastReportData = result.data; // Store for export
                 this.renderReportData(result.data);
                 document.getElementById('report-content').classList.remove('hidden');
                 this.showToast("Report generated successfully.", "success");
@@ -2905,9 +2980,66 @@ const app = {
     },
 
     exportReport: function (format) {
+        if (!this.lastReportData) {
+            this.showToast("Please generate a report first.", "warning");
+            return;
+        }
+
         if (format === 'print') {
             window.print();
+        } else if (format === 'csv') {
+            this.downloadReportCSV();
         }
+    },
+
+    downloadReportCSV: function () {
+        const data = this.lastReportData;
+        let csvContent = "data:text/csv;charset=utf-8,";
+        
+        // Section: Summary
+        csvContent += "DENTASSIST ANALYTICS REPORT\n";
+        csvContent += `Period,${data.date_range.start} to ${data.date_range.end}\n`;
+        csvContent += `Generated At,${new Date().toLocaleString()}\n\n`;
+
+        csvContent += "APPOINTMENT SUMMARY\n";
+        csvContent += "Metric,Value\n";
+        csvContent += `Total Bookings,${data.appointments.total_appointments}\n`;
+        csvContent += `Completed,${data.appointments.completed}\n`;
+        csvContent += `Cancelled,${data.appointments.cancelled}\n`;
+        csvContent += `Walk-ins,${data.appointments.walk_in}\n\n`;
+
+        // Section: Revenue
+        csvContent += "REVENUE INSIGHTS\n";
+        csvContent += "Status,Amount (PHP)\n";
+        csvContent += `Total Billed,${data.revenue.total_billed}\n`;
+        csvContent += `Total Collected,${data.revenue.total_paid}\n`;
+        csvContent += `Outstanding,${data.revenue.total_unpaid}\n\n`;
+
+        // Section: Services
+        csvContent += "SERVICE PERFORMANCE\n";
+        csvContent += "Service Name,Usage Count,Total Revenue (PHP)\n";
+        data.services.forEach(s => {
+            csvContent += `"${s.service_name}",${s.usage_count},${s.total_revenue}\n`;
+        });
+        csvContent += "\n";
+
+        // Section: Dentists
+        if (data.dentists && data.dentists.length > 0) {
+            csvContent += "STAFF PERFORMANCE\n";
+            csvContent += "Staff Name,Appointments Handled,Unique Patients\n";
+            data.dentists.forEach(d => {
+                csvContent += `"${d.dentist_name}",${d.total_appointments},${d.unique_patients}\n`;
+            });
+        }
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `DentAssist_Report_${data.date_range.start}_to_${data.date_range.end}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.showToast("CSV report downloaded.", "success");
     }
 };
 
