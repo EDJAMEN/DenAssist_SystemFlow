@@ -22,6 +22,7 @@ $query = "SELECT u.id, u.full_name,
           FROM users u
           WHERE u.role IN ('admin', 'dentist')
             AND u.status = 'active'
+            AND u.is_active = 1
           ORDER BY appointment_count ASC, u.full_name ASC";
 
 $stmt = $conn->prepare($query);

@@ -5,7 +5,8 @@ header("Content-Type: application/json; charset=UTF-8");
 include_once '../config/database.php';
 
 // Fetch all users with role 'dentist' or 'admin' who are also 'active'
-$query = "SELECT id, full_name, email, role, professional_id, position FROM users WHERE role IN ('dentist', 'admin') AND status = 'active' ORDER BY full_name ASC";
+// Fetch all users with role 'dentist' or 'admin' who are 'active' account-wise
+$query = "SELECT id, full_name, email, role, professional_id, position, is_active FROM users WHERE role IN ('dentist', 'admin') AND status = 'active' AND deleted_at IS NULL ORDER BY full_name ASC";
 $result = $conn->query($query);
 
 if ($result) {

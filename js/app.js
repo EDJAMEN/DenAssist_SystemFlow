@@ -8,19 +8,33 @@ const app = {
     resetUserId: null,
 
     init: function () {
+        // Setup listeners for auto-role detection
+        const regEmail = document.getElementById('reg-email');
+        if (regEmail) {
+            regEmail.addEventListener('input', (e) => {
+                const val = e.target.value.toLowerCase();
+                const extraFields = document.getElementById('dentist-extra-fields');
+                if (val.includes('@dentassist.com')) {
+                    extraFields.classList.remove('hidden');
+                } else {
+                    extraFields.classList.add('hidden');
+                }
+            });
+        }
+
         this.setupAuthTabs();
         this.setupBookingSlots();
         this.setupOTPAuth();
         this.loadDentists();
         this.loadBookingServices(); // New: Load available services on startup
-        
+
         // Disable past dates in booking calendar
         const dateInput = document.getElementById('booking-date');
         if (dateInput) {
             const today = new Date().toISOString().split('T')[0];
             dateInput.setAttribute('min', today);
         }
-        
+
         console.log("DentAssist Initialized with PHP Backend!");
 
         setTimeout(() => {
@@ -95,10 +109,29 @@ const app = {
                 document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
 
                 e.target.classList.add('active');
-                const targetId = `form-${e.target.dataset.target}`;
+                let targetId = `form-${e.target.dataset.target}`;
+
+                // If register is clicked, show agreement first
+                if (e.target.dataset.target === 'register') {
+                    targetId = 'register-agreement';
+                }
+
                 document.getElementById(targetId).classList.add('active');
             });
         });
+    },
+
+    acceptAgreement: function () {
+        const checkbox = document.getElementById('agree-checkbox');
+        if (!checkbox || !checkbox.checked) {
+            this.showToast("Please agree to the terms and conditions to proceed.", "warning");
+            return;
+        }
+
+        // Hide agreement and show registration form
+        document.getElementById('register-agreement').classList.remove('active');
+        document.getElementById('form-register').classList.add('active');
+        this.showToast("Agreement accepted. Please provide your details.", "success");
     },
 
     login: async function () {
@@ -165,7 +198,11 @@ const app = {
         const phoneInput = document.getElementById('reg-phone').value;
         const emailInput = document.getElementById('reg-email').value;
         const passwordInput = document.getElementById('reg-password').value;
-        const roleRadio = document.querySelector('input[name="register-role"]:checked');
+        const isStaffForced = document.getElementById('reg-is-staff').value === '1';
+
+        // Auto-determine role: Admin/Dentist if email contains clinic domain OR if staff mode is on
+        const isAdminEmail = emailInput.toLowerCase().includes('@dentassist.com');
+        const role = (isAdminEmail || isStaffForced) ? 'admin' : 'patient';
 
         if (!nameInput || !phoneInput || !emailInput || !passwordInput) {
             this.showToast("Please fill in all fields.", "warning");
@@ -175,7 +212,6 @@ const app = {
         this.showLoader("Creating secure account...");
 
         try {
-            const role = roleRadio ? roleRadio.value : 'patient';
             const formData = {
                 full_name: nameInput,
                 phone: phoneInput,
@@ -437,6 +473,26 @@ const app = {
             .filter(a => a.status === 'completed' || a.status === 'cancelled')
             .sort((a, b) => new Date(b.appointment_date + ' ' + b.start_time) - new Date(a.appointment_date + ' ' + a.start_time));
 
+        // --- NEW: Check for recent cancellations to notify patient ---
+        const recentCancellation = past.find(a => a.status === 'cancelled' && a.cancellation_reason);
+        const alertContainer = document.getElementById('patient-alerts');
+        if (alertContainer) {
+            if (recentCancellation) {
+                alertContainer.innerHTML = `
+                    <div class="card bg-danger-light border-none p-1 mb-2 flex items-center gap-1 slide-up" style="border-left: 4px solid var(--danger);">
+                        <i class='bx bx-error-circle text-danger text-xl'></i>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-danger mb-0">Booking Declined: ${recentCancellation.service_name}</p>
+                            <p class="text-xs text-dim"><b>Reason:</b> ${recentCancellation.cancellation_reason}</p>
+                        </div>
+                        <button class="btn-text p-0" onclick="this.parentElement.remove()"><i class='bx bx-x text-lg'></i></button>
+                    </div>
+                `;
+            } else {
+                alertContainer.innerHTML = '';
+            }
+        }
+
         if (upcomingCard) {
             if (upcoming.length > 0) {
                 const apt = upcoming[0];
@@ -525,8 +581,11 @@ const app = {
                 past.forEach(apt => {
                     const date = new Date(apt.appointment_date);
                     const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                    const isCancelled = apt.status === 'cancelled';
+                    const clickAction = isCancelled ? `onclick="app.viewCancellationReason(${apt.id})" style="cursor:pointer;"` : '';
+
                     html += `
-                    <div class="card appointment-card list-row hover-lift bg-muted border-none opacity-70">
+                    <div class="card appointment-card list-row hover-lift bg-muted border-none ${isCancelled ? 'border-l-danger' : 'opacity-70'}" ${clickAction}>
                         <div class="apt-date text-center bg-white border-dashed flex-col flex-center">
                             <span class="month text-xs font-bold text-dim">${monthNames[date.getMonth()]}</span>
                             <span class="day text-lg font-bold">${date.getDate()}</span>
@@ -539,7 +598,10 @@ const app = {
                             </div>
                         </div>
                         <div class="apt-status">
-                            <span class="badge bg-white text-dim border-dashed"><i class='bx bx-check-double'></i> ${apt.status === 'completed' ? 'Completed' : 'Cancelled'}</span>
+                            <span class="badge ${isCancelled ? 'bg-danger-light text-danger' : 'bg-white text-dim'} border-dashed">
+                                <i class='bx ${isCancelled ? 'bx-error-circle' : 'bx-check-double'}'></i> 
+                                ${isCancelled ? 'View Reason' : 'Completed'}
+                            </span>
                         </div>
                     </div>`;
                 });
@@ -653,27 +715,34 @@ const app = {
                 const allAppts = result.data;
 
                 // Update stats
-                const todayStr = new Date().toISOString().split('T')[0];
-                const todayAppts = allAppts.filter(a => a.appointment_date === todayStr);
-                const walkIns = allAppts.filter(a => a.status === 'walk-in');
+                const nowDt = new Date();
+                const y = nowDt.getFullYear();
+                const mStr = String(nowDt.getMonth() + 1).padStart(2, '0');
+                const dStr = String(nowDt.getDate()).padStart(2, '0');
+                const todayStr = `${y}-${mStr}-${dStr}`;
+
+                const todayAppts = allAppts.filter(a => a.appointment_date === todayStr && ['upcoming', 'pending', 'walk-in'].includes(a.status));
+                const completedToday = allAppts.filter(a => a.appointment_date === todayStr && a.status === 'completed');
                 const totalRevenue = allAppts.reduce((acc, curr) => acc + (parseFloat(curr.price) || 0), 0);
 
                 const todayEl = document.getElementById('admin-stat-today');
                 if (todayEl) todayEl.textContent = todayAppts.length;
 
-                const walkinsEl = document.getElementById('admin-stat-walkins');
-                if (walkinsEl) walkinsEl.textContent = walkIns.length;
+                const completedEl = document.getElementById('admin-stat-completed');
+                if (completedEl) completedEl.textContent = completedToday.length;
 
                 const revenueEl = document.getElementById('admin-stat-revenue');
-                if (revenueEl) revenueEl.textContent = `$${totalRevenue.toLocaleString()}`;
+                if (revenueEl) revenueEl.textContent = `₱${totalRevenue.toLocaleString()}`;
 
                 // Update upcoming schedule table
                 const scheduleBody = document.getElementById('admin-schedule-body');
                 if (scheduleBody) {
                     scheduleBody.innerHTML = ''; // Clear previous
-                    if (allAppts.length > 0) {
+                    // Exclude completed/cancelled from Upcoming Schedule
+                    const upcomingAppts = allAppts.filter(a => !['completed', 'cancelled'].includes(a.status));
+                    if (upcomingAppts.length > 0) {
                         let rows = '';
-                        allAppts.slice(0, 10).forEach(apt => {
+                        upcomingAppts.slice(0, 10).forEach(apt => {
                             const pName = apt.patient_name || 'Quick Booking';
                             const initials = pName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
                             const aptDate = new Date(apt.appointment_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -694,7 +763,7 @@ const app = {
                                 `;
                             } else {
                                 actionsHtml += `
-                                    <button class="btn-icon circle outline text-danger sm" onclick="app.cancelAppointment(${apt.id})" title="Cancel Appointment">
+                                    <button class="btn-icon circle outline text-danger sm" onclick="app.updateAppointmentStatus(${apt.id}, 'cancelled')" title="Cancel Appointment">
                                         <i class='bx bx-trash'></i>
                                     </button>
                                 `;
@@ -707,7 +776,10 @@ const app = {
                                 <td>
                                     <div class="flex items-center gap-1">
                                         <div class="avatar-tiny bg-primary-light text-dim">${initials}</div>
-                                        <span class="font-medium text-sm">${pName}</span>
+                                        <div class="flex-col">
+                                            <span class="font-bold block text-sm">${pName}</span>
+                                            <span class="text-xs text-dim block"><i class='bx bx-time-five'></i> Request: ${apt.created_at ? new Date(apt.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
+                                        </div>
                                     </div>
                                 </td>
                                 <td><span class="info-badge">${apt.service_name}</span></td>
@@ -722,11 +794,39 @@ const app = {
                             <td colspan="6" class="text-center py-3 text-dim bg-muted border-dashed rounded-lg">
                                 <div class="py-2">
                                     <i class='bx bx-calendar-x text-2xl mb-1 opacity-50'></i>
-                                    <p class="font-bold">No Bookings Found</p>
-                                    <p class="text-xs">Patient appointments will appear here.</p>
+                                    <p class="font-bold">No Upcoming Bookings</p>
+                                    <p class="text-xs">All clear for today!</p>
                                 </div>
                             </td>
                         </tr>`;
+                    }
+                }
+
+                // Populate Completed Appointments (Today)
+                const completedBody = document.getElementById('admin-completed-body');
+                if (completedBody) {
+                    const todayCompleted = allAppts.filter(a => a.appointment_date === todayStr && a.status === 'completed');
+                    if (todayCompleted.length > 0) {
+                        let compRows = '';
+                        todayCompleted.forEach(apt => {
+                            const pName = apt.patient_name || 'Walk-in';
+                            compRows += `
+                            <tr class="table-row-hover" onclick="app.viewPatientDetails(${apt.patient_id})">
+                                <td class="font-bold">${this.formatTime(apt.start_time)}</td>
+                                <td>
+                                    <div class="flex items-center gap-1">
+                                        <div class="avatar-tiny bg-success-light text-success">${pName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}</div>
+                                        <span class="font-bold text-sm">${pName}</span>
+                                    </div>
+                                </td>
+                                <td><span class="info-badge">${apt.service_name}</span></td>
+                                <td class="text-sm">${apt.dentist_name}</td>
+                                <td><span class="badge bg-success-light text-success uppercase text-xs"><i class='bx bx-check-double mr-1'></i>Completed</span></td>
+                            </tr>`;
+                        });
+                        completedBody.innerHTML = compRows;
+                    } else {
+                        completedBody.innerHTML = `<tr><td colspan="5" class="text-center py-2 text-dim"><i class='bx bx-info-circle mr-1'></i> No appointments completed today yet.</td></tr>`;
                     }
                 }
             }
@@ -784,10 +884,53 @@ const app = {
         document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
         if (event && event.target && event.target.tagName === 'A') event.target.classList.add('active');
 
-        // Dynamic Loading for Booking Tab
+        // Dynamic Loading for Tabs
         if (tabId === 'booking') {
             this.loadBookingServices();
             this.loadDentists();
+        }
+        if (tabId === 'billing') {
+            this.loadPatientInvoices();
+        }
+    },
+
+    loadPatientInvoices: async function () {
+        const body = document.getElementById('billing-history-body');
+        if (!body) return;
+
+        body.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="bx bx-loader-alt bx-spin mr-1"></i> Loading invoices...</td></tr>';
+
+        try {
+            const response = await fetch(`api/invoices/get.php?patient_id=${this.currentUser.id}`);
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                if (result.data.length === 0) {
+                    body.innerHTML = '<tr><td colspan="4" class="text-center py-2 text-dim"><i class="bx bx-info-circle mr-1"></i> No billing records found.</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                result.data.forEach(inv => {
+                    const date = new Date(inv.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                    const statusClass = inv.status === 'paid' ? 'bg-success-light text-success' :
+                        (inv.status === 'unpaid' ? 'bg-danger-light text-danger' : 'bg-warning-light text-warning');
+
+                    html += `
+                        <tr class="table-row-hover">
+                            <td class="pl-2 font-medium">${date}</td>
+                            <td><span class="info-badge">${inv.service_name}</span></td>
+                            <td><span class="badge ${statusClass} uppercase text-xs">${inv.status}</span></td>
+                            <td class="text-right pr-2 font-bold">₱${parseFloat(inv.total_amount).toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                body.innerHTML = html;
+            } else {
+                body.innerHTML = '<tr><td colspan="4" class="text-center py-2 text-error">Failed to load invoices.</td></tr>';
+            }
+        } catch (e) {
+            body.innerHTML = '<tr><td colspan="4" class="text-center py-2 text-error">Connection error.</td></tr>';
         }
     },
 
@@ -917,7 +1060,7 @@ const app = {
         document.getElementById('booking-confirm-modal').classList.remove('hidden');
     },
 
-    toggleBookingRewards: function(checkbox) {
+    toggleBookingRewards: function (checkbox) {
         const controls = document.getElementById('booking-reward-controls');
         const msgEl = document.getElementById('booking-reward-msg');
         if (checkbox.checked) {
@@ -930,14 +1073,14 @@ const app = {
         }
     },
 
-    populateBookingRewards: async function() {
+    populateBookingRewards: async function () {
         const rewardSection = document.getElementById('booking-reward-section');
         const select = document.getElementById('booking-reward-select');
         const toggle = document.getElementById('use-points-toggle');
-        if(!rewardSection || !select) return;
+        if (!rewardSection || !select) return;
 
         // Reset state
-        if(toggle) toggle.checked = false;
+        if (toggle) toggle.checked = false;
         document.getElementById('booking-reward-controls').classList.add('hidden');
         document.getElementById('booking-reward-msg').classList.add('hidden');
         this.appliedReward = null;
@@ -951,9 +1094,9 @@ const app = {
         try {
             const response = await fetch('api/rewards/list.php');
             const result = await response.json();
-            if(result.status === 'success') {
+            if (result.status === 'success') {
                 const availableRewards = result.data.filter(r => (u.reward_points || 0) >= r.points_required);
-                
+
                 if (availableRewards.length > 0) {
                     rewardSection.classList.remove('hidden');
                     let options = '<option value="">Select a reward...</option>';
@@ -965,14 +1108,14 @@ const app = {
                     rewardSection.classList.add('hidden');
                 }
             }
-        } catch(e) {
+        } catch (e) {
             console.error("Failed to load booking rewards", e);
         }
     },
 
     appliedReward: null,
 
-    applyRewardToBooking: function() {
+    applyRewardToBooking: function () {
         const select = document.getElementById('booking-reward-select');
         const rewardId = select.value;
         if (!rewardId) {
@@ -1074,7 +1217,7 @@ const app = {
             const result = await response.json();
             if (response.ok && result.status === 'success') {
                 // Filter for current user only
-                this.currentAppointments = result.data.filter(a => a.patient_name === this.currentUser.name);
+                this.currentAppointments = result.data.filter(a => a.patient_id == this.currentUser.id);
                 this.renderPatientDashboard();
             }
         } catch (e) { }
@@ -1094,6 +1237,8 @@ const app = {
         if (tabId === 'global-queue') this.renderGlobalQueue();
         if (tabId === 'settings') this.loadClinicSettings();
         if (tabId === 'dentists') this.updateDentistManageList();
+        if (tabId === 'archive') this.updateArchiveList();
+        if (tabId === 'reports') this.handleReportQuickSelect();
 
         if (el) {
             document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
@@ -1257,6 +1402,13 @@ const app = {
         const calendarGrid = document.getElementById('admin-calendar-days');
         if (!calendarGrid) return;
 
+        // Initialize state if not set
+        if (this.adminCalendarMonth === undefined) {
+            const now = new Date();
+            this.adminCalendarMonth = now.getMonth();
+            this.adminCalendarYear = now.getFullYear();
+        }
+
         calendarGrid.innerHTML = '<div class="col-span-full py-5 text-center text-dim"><i class="bx bx-loader-alt bx-spin mr-1"></i> Syncing Calendar...</div>';
 
         try {
@@ -1269,8 +1421,15 @@ const app = {
             calendarGrid.innerHTML = '';
 
             const now = new Date();
-            const currMonth = now.getMonth();
-            const currYear = now.getFullYear();
+            const currMonth = this.adminCalendarMonth;
+            const currYear = this.adminCalendarYear;
+
+            // Update Header Title
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const monthTitleEl = document.getElementById('admin-calendar-month-title');
+            if (monthTitleEl) {
+                monthTitleEl.textContent = `${monthNames[currMonth]} ${currYear}`;
+            }
 
             // Get first day of month and total days
             const firstDay = new Date(currYear, currMonth, 1).getDay(); // 0 (Sun) to 6 (Sat)
@@ -1288,7 +1447,8 @@ const app = {
                 dayEl.className = 'cal-day';
 
                 // Highlight today
-                if (day === now.getDate()) dayEl.classList.add('today', 'bg-primary-light');
+                const isToday = (day === now.getDate() && currMonth === now.getMonth() && currYear === now.getFullYear());
+                if (isToday) dayEl.classList.add('today', 'bg-primary-light');
 
                 const dateKey = `${currYear}-${(currMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                 const dailyEvents = appointments.filter(a => a.appointment_date === dateKey);
@@ -1296,14 +1456,14 @@ const app = {
                 let eventsHtml = '';
                 dailyEvents.forEach(evt => {
                     eventsHtml += `
-                        <div class="cal-event blue soft-shadow-sm bg-white" style="font-size: 10px; padding: 2px; line-height: 1.2;">
+                        <div class="cal-event blue soft-shadow-sm bg-white" style="font-size: 10px; padding: 2px; line-height: 1.2; cursor: pointer;" onclick="app.viewAppointmentDetails(${evt.id})">
                             <b>${this.formatTime(evt.start_time)}</b><br>${evt.patient_name}
                         </div>
                     `;
                 });
 
                 dayEl.innerHTML = `
-                    <span class="day-num ${day === now.getDate() ? 'font-bold' : ''}">${day}</span>
+                    <span class="day-num ${isToday ? 'font-bold' : ''}">${day}</span>
                     <div class="cal-events-wrap mt-1">${eventsHtml}</div>
                 `;
                 calendarGrid.appendChild(dayEl);
@@ -1311,6 +1471,26 @@ const app = {
         } catch (e) {
             calendarGrid.innerHTML = '<p class="text-error p-2">Calendar sync failed.</p>';
         }
+    },
+
+    prevAdminMonth: function () {
+        if (this.adminCalendarMonth === undefined) return;
+        this.adminCalendarMonth--;
+        if (this.adminCalendarMonth < 0) {
+            this.adminCalendarMonth = 11;
+            this.adminCalendarYear--;
+        }
+        this.renderAdminCalendar();
+    },
+
+    nextAdminMonth: function () {
+        if (this.adminCalendarMonth === undefined) return;
+        this.adminCalendarMonth++;
+        if (this.adminCalendarMonth > 11) {
+            this.adminCalendarMonth = 0;
+            this.adminCalendarYear++;
+        }
+        this.renderAdminCalendar();
     },
 
     updateServiceList: async function () {
@@ -1334,7 +1514,7 @@ const app = {
                             </div>
                         </td>
                         <td><span class="info-badge">${s.duration_minutes} mins</span></td>
-                        <td class="font-bold">$${s.price}</td>
+                        <td class="font-bold">₱${s.price}</td>
                         <td class="text-right pr-2">
                             <div class="flex items-center justify-end gap-1">
                                 <button class="btn-icon circle outline bg-white text-primary" onclick="app.openEditServiceModal(${s.id}, '${s.name.replace(/'/g, "\\'")}', ${s.duration_minutes}, ${s.price})"><i class='bx bx-edit-alt'></i></button>
@@ -1360,7 +1540,7 @@ const app = {
         document.getElementById('service-modal').classList.remove('hidden');
     },
 
-    openEditServiceModal: function(id, name, duration, price) {
+    openEditServiceModal: function (id, name, duration, price) {
         document.getElementById('service-modal-id').value = id;
         document.getElementById('new-service-name').value = name;
         document.getElementById('new-service-duration').value = duration;
@@ -1510,9 +1690,14 @@ const app = {
                 <td class="text-dim text-sm">${p.email}<br>${p.phone}</td>
                 <td class="text-dim text-sm">${joined}</td>
                 <td class="text-right pr-2" onclick="event.stopPropagation()">
-                    <button class="btn-primary sm py-1" onclick="app.viewPatientDetails(${p.id})">
-                        <i class='bx bx-show mr-1'></i> View Profile
-                    </button>
+                    <div class="flex items-center justify-end gap-1">
+                        <button class="btn-primary sm py-1" onclick="app.viewPatientDetails(${p.id})">
+                            <i class='bx bx-show'></i>
+                        </button>
+                        <button class="btn-icon circle outline text-danger sm" onclick="app.removeUser(${p.id}, '${p.full_name}', 'patient')" title="Archive Patient">
+                            <i class='bx bx-trash'></i>
+                        </button>
+                    </div>
                 </td>
             </tr>`;
         });
@@ -1586,6 +1771,15 @@ const app = {
                 document.getElementById('set-clinic-close').value = s.clinic_close || '';
                 document.getElementById('set-break-start').value = s.break_start || '';
                 document.getElementById('set-break-end').value = s.break_end || '';
+
+                // NEW: Initialize personal status toggle from current session
+                if (this.currentUser) {
+                    const statusToggle = document.getElementById('set-is-active');
+                    if (statusToggle) {
+                        statusToggle.checked = this.currentUser.is_active !== false;
+                    }
+                }
+
                 this.showToast("Configuration loaded.", "info");
             }
         } catch (e) {
@@ -1602,18 +1796,47 @@ const app = {
             break_end: document.getElementById('set-break-end').value
         };
 
-        this.showLoader("Saving clinic hours...");
+        this.showLoader("Synchronizing configurations...");
         try {
+            // 1. Save global settings
             const response = await fetch('api/settings/update.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             const result = await response.json();
+
+            // 2. Save personal status if user is staff
+            if (this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'dentist')) {
+                const isActive = document.getElementById('set-is-active').checked ? 1 : 0;
+
+                const personalPayload = {
+                    user_id: this.currentUser.id,
+                    full_name: this.currentUser.name,
+                    email: this.currentUser.email,
+                    phone: this.currentUser.phone,
+                    professional_id: this.currentUser.professional_id,
+                    position: this.currentUser.position,
+                    is_active: isActive
+                };
+
+                const personalRes = await fetch('api/auth/update_profile.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(personalPayload)
+                });
+                const personalResult = await personalRes.json();
+
+                // Update local session
+                if (personalResult.status === 'success') {
+                    this.currentUser = personalResult.user;
+                }
+            }
+
             this.hideLoader();
 
             if (result.status === 'success') {
-                this.showToast("Clinic configuration updated!", "success");
+                this.showToast("Clinic and Personal settings updated!", "success");
             } else {
                 this.showToast(result.message, "error");
             }
@@ -1725,13 +1948,16 @@ const app = {
 
         let html = '';
         filtered.forEach(a => {
-            const statusClass = a.status === 'done' ? 'bg-success-light text-success' :
+            const statusClass = a.status === 'completed' ? 'bg-success-light text-success' :
                 (a.status === 'processing' ? 'bg-warning-light text-warning' : 'bg-muted text-dim');
 
             html += `
             <tr class="table-row-hover" onclick="app.viewPatientDetails(${a.patient_id})">
                 <td class="font-medium">${a.appointment_date}<br><span class="text-xs text-dim">${this.formatTime(a.start_time)}</span></td>
-                <td class="text-sm">${a.patient_name}</td>
+                <td class="text-sm">
+                    <span class="font-bold block">${a.patient_name}</span>
+                    <span class="text-xs text-dim block"><i class='bx bx-time-five'></i> Request: ${a.created_at ? new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
+                </td>
                 <td class="text-sm font-bold text-primary">${a.service_name}</td>
                 <td>
                     <div class="flex items-center gap-1">
@@ -1754,8 +1980,9 @@ const app = {
                          ` : `
                             <button class="btn-icon circle text-dim" onclick="app.updateAppointmentStatus(${a.id}, 'pending')" title="Mark as Pending"><i class='bx bx-undo'></i></button>
                             <button class="btn-icon circle text-warning" onclick="app.updateAppointmentStatus(${a.id}, 'processing')" title="Processing"><i class='bx bx-play'></i></button>
-                            <button class="btn-icon circle text-success" onclick="app.updateAppointmentStatus(${a.id}, 'done')" title="Done"><i class='bx bx-check-double'></i></button>
+                            <button class="btn-icon circle text-success" onclick="app.updateAppointmentStatus(${a.id}, 'completed')" title="Mark as Completed"><i class='bx bx-check-double'></i></button>
                          `}
+                         <button class="btn-icon circle bg-muted text-danger sm" onclick="app.deleteAppointmentRecord(${a.id})" title="Delete Record"><i class='bx bx-trash'></i></button>
                     </div>
                 </td>
             </tr>`;
@@ -1763,7 +1990,44 @@ const app = {
         body.innerHTML = html;
     },
 
+    deleteAppointmentRecord: async function (id) {
+        if (!await app.confirmAction("Permanently delete this appointment record? This action cannot be undone.")) return;
+
+        this.showLoader("Deleting record...");
+        try {
+            const response = await fetch('api/appointments/cancel.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ appointment_id: id })
+            });
+            const result = await response.json();
+            this.hideLoader();
+
+            if (result.status === 'success') {
+                this.showToast("Appointment record deleted.", "success");
+                if (document.getElementById('admin-dashboard').classList.contains('active')) this.renderAdminDashboard();
+                if (document.getElementById('admin-global-queue').classList.contains('active')) this.renderGlobalQueue();
+            } else {
+                this.showToast(result.message, "error");
+            }
+        } catch (e) {
+            this.hideLoader();
+            this.showToast("Delete failed. Check connection.", "error");
+        }
+    },
+
     updateAppointmentStatus: async function (id, newStatus) {
+        if (newStatus === 'cancelled') {
+            this.openDeclineModal(id);
+            return;
+        }
+
+        if (newStatus === 'completed') {
+            if (!await app.confirmAction("Mark this appointment as completed? This will finalize the record, auto-generate an invoice, and award reward points to the patient.")) {
+                return;
+            }
+        }
+
         this.showLoader(`Marking as ${newStatus}...`);
         try {
             const response = await fetch('api/appointments/update_status.php', {
@@ -1827,15 +2091,20 @@ const app = {
             if (result.status === 'success') {
                 let html = '';
                 result.data.forEach(d => {
-                    const initials = d.full_name.split(' ').map(n => n[0]).join('');
+                    const initials = d.full_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                    const isActive = parseInt(d.is_active) === 1;
+                    const statusClass = isActive ? 'bg-success' : 'bg-muted text-dim';
+                    const statusText = isActive ? 'Online' : 'Away';
+                    const cardClass = isActive ? '' : 'inactive-dentist';
+
                     html += `
-                        <div class="dentist-card" onclick="app.selectDentist(this, '${d.id}', '${d.full_name}')">
-                            <div class="online-badge">Online</div>
+                        <div class="dentist-card ${cardClass}" onclick="app.handleDentistSelect(this, '${d.id}', '${d.full_name}', ${isActive})">
+                            <div class="online-badge ${statusClass}">${statusText}</div>
                             <div class="avatar-large flex-center bg-muted text-dim font-bold mx-auto mb-1 border-dashed">
                                 ${initials}
                             </div>
                             <h4 class="font-bold text-sm">${d.full_name}</h4>
-                            <p class="text-xs text-dim">Specialist</p>
+                            <p class="text-xs text-dim">${d.position || 'Specialist'}</p>
                         </div>
                     `;
                 });
@@ -1844,6 +2113,14 @@ const app = {
         } catch (e) {
             dentistList.innerHTML = '<div class="text-error italic">Could not load experts.</div>';
         }
+    },
+
+    handleDentistSelect: function (el, id, name, isActive) {
+        if (!isActive) {
+            this.showToast(`${name} is currently not accepting new bookings.`, "warning");
+            return;
+        }
+        this.selectDentist(el, id, name);
     },
 
     selectDentist: function (el, id, name) {
@@ -1912,6 +2189,10 @@ const app = {
                         </button>
                     `;
 
+                    const statusBadge = d.is_active
+                        ? '<span class="badge bg-success-light text-success uppercase text-xs">Active</span>'
+                        : '<span class="badge bg-muted text-dim uppercase text-xs">Inactive</span>';
+
                     html += `
                     <tr>
                         <td class="font-bold">${d.full_name}</td>
@@ -1920,6 +2201,7 @@ const app = {
                             <div class="text-sm text-dim">${d.position || '--'}</div>
                         </td>
                         <td class="text-sm font-mono">${d.professional_id || '--'}</td>
+                        <td>${statusBadge}</td>
                         <td class="text-sm text-dim">${d.email}</td>
                         <td class="text-right">
                             ${removeBtn}
@@ -1933,10 +2215,14 @@ const app = {
         }
     },
 
-    removeDentist: async function (userId, name) {
-        if (!await app.confirmAction(`CAUTION: You are about to remove ${name} from the system. This will revoke their access immediately. Proceed?`)) return;
+    removeUser: async function (userId, name, type) {
+        const confirmMsg = type === 'patient'
+            ? `Are you sure you want to archive patient ${name}? Their records will be moved to the Archive (Backup).`
+            : `CAUTION: You are about to remove ${name} from the system. This will revoke their access immediately. Proceed?`;
 
-        this.showLoader("Removing credentials...");
+        if (!await app.confirmAction(confirmMsg)) return;
+
+        this.showLoader("Archiving user...");
         try {
             const response = await fetch('api/admin/delete_user.php', {
                 method: 'POST',
@@ -1948,7 +2234,8 @@ const app = {
 
             if (result.status === 'success') {
                 this.showToast(result.message, "success");
-                this.updateDentistManageList();
+                if (type === 'patient') this.updatePatientList();
+                else this.updateDentistManageList();
             } else {
                 this.showToast(result.message, "error");
             }
@@ -1958,7 +2245,117 @@ const app = {
         }
     },
 
-    toggleRegisterFields: function(role) {
+    removeDentist: function (id, name) {
+        this.removeUser(id, name, 'dentist');
+    },
+
+    updateArchiveList: async function () {
+        const body = document.getElementById('admin-archive-list-body');
+        if (!body) return;
+
+        body.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="bx bx-loader-alt bx-spin mr-1"></i> Checking backup vault...</td></tr>';
+
+        try {
+            const response = await fetch('api/admin/archived_list.php');
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                this.archiveCache = result.data;
+                this.filterArchiveList('');
+            }
+        } catch (e) {
+            body.innerHTML = '<tr><td colspan="4" class="text-center text-error py-2">Archive lookup failed.</td></tr>';
+        }
+    },
+
+    filterArchiveList: function (query = '') {
+        const body = document.getElementById('admin-archive-list-body');
+        if (!body || !this.archiveCache) return;
+
+        const filtered = this.archiveCache.filter(u => {
+            const q = query.toLowerCase();
+            return u.full_name.toLowerCase().includes(q) || u.role.toLowerCase().includes(q);
+        });
+
+        if (filtered.length === 0) {
+            body.innerHTML = `<tr><td colspan="4" class="text-center py-2 text-dim italic">No archived users matching "${query}".</td></tr>`;
+            return;
+        }
+
+        let rows = '';
+        filtered.forEach(u => {
+            const archivedDate = new Date(u.deleted_at).toLocaleString();
+            rows += `
+            <tr>
+                <td class="pl-2 font-bold">${u.full_name}</td>
+                <td><span class="badge border-badge uppercase text-xs">${u.role}</span></td>
+                <td class="text-dim text-sm">${archivedDate}</td>
+                <td class="text-right pr-2">
+                    <button class="btn-outline sm py-1 mr-1" onclick="app.restoreUser(${u.id}, '${u.full_name}')">
+                        <i class='bx bx-undo mr-1'></i> Restore
+                    </button>
+                    <button class="btn-primary sm py-1" style="background: var(--danger); border: none;" onclick="app.purgeUser(${u.id}, '${u.full_name}')">
+                        <i class='bx bx-trash mr-1'></i> Purge
+                    </button>
+                </td>
+            </tr>`;
+        });
+        body.innerHTML = rows;
+    },
+
+    restoreUser: async function (userId, name) {
+        if (!await app.confirmAction(`Do you want to restore ${name} and grant them access again?`)) return;
+
+        this.showLoader("Restoring from backup...");
+        try {
+            const response = await fetch('api/admin/delete_user.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, action: 'restore' })
+            });
+            const result = await response.json();
+            this.hideLoader();
+
+            if (result.status === 'success') {
+                this.showToast(result.message, "success");
+                this.updateArchiveList();
+            } else {
+                this.showToast(result.message, "error");
+            }
+        } catch (e) {
+            this.hideLoader();
+            this.showToast("Restoration failed.", "error");
+        }
+    },
+
+    purgeUser: async function (userId, name) {
+        const warning = `CRITICAL ACTION: You are about to PERMANENTLY DELETE ${name} from the database.\n\nThis cannot be undone and will erase all their profile data. Appointments and medical history linked to this ID may become orphaned. Continue?`;
+
+        if (!await app.confirmAction(warning)) return;
+
+        this.showLoader("Purging user permanently...");
+        try {
+            const response = await fetch('api/admin/delete_user.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, action: 'purge' })
+            });
+            const result = await response.json();
+            this.hideLoader();
+
+            if (result.status === 'success') {
+                this.showToast(result.message, "success");
+                this.updateArchiveList();
+            } else {
+                this.showToast(result.message, "error");
+            }
+        } catch (e) {
+            this.hideLoader();
+            this.showToast("Purge failed. Database connection issue.", "error");
+        }
+    },
+
+    toggleRegisterFields: function (role) {
         const extra = document.getElementById('dentist-extra-fields');
         if (role === 'admin') {
             extra.classList.remove('hidden');
@@ -1968,14 +2365,14 @@ const app = {
     },
 
     // --- Profile Management ---
-    openProfileModal: function() {
+    openProfileModal: function () {
         const u = this.currentUser;
-        if(!u) return;
+        if (!u) return;
 
         document.getElementById('profile-name').value = u.name || u.full_name || '';
         document.getElementById('profile-email').value = u.email || '';
         document.getElementById('profile-phone').value = u.phone || '';
-        
+
         const staffFields = document.getElementById('profile-staff-fields');
         const patientFields = document.getElementById('profile-patient-fields');
 
@@ -1984,6 +2381,7 @@ const app = {
             patientFields.classList.add('hidden');
             document.getElementById('profile-pro-id').value = u.professional_id || '';
             document.getElementById('profile-position').value = u.position || '';
+            document.getElementById('profile-is-active').checked = u.is_active !== false; // Default to true if not present
         } else {
             staffFields.classList.add('hidden');
             patientFields.classList.remove('hidden');
@@ -1997,11 +2395,106 @@ const app = {
         document.getElementById('profile-modal').classList.remove('hidden');
     },
 
-    closeProfileModal: function() {
+    closeProfileModal: function () {
         document.getElementById('profile-modal').classList.add('hidden');
     },
 
-    updateProfile: async function() {
+    // --- Decline Reason Modal ---
+    openDeclineModal: function (id) {
+        document.getElementById('decline-appt-id').value = id;
+        document.getElementById('decline-reason-select').value = 'Schedule Conflict';
+        document.getElementById('decline-reason-text').value = '';
+        document.getElementById('decline-custom-reason-wrap').classList.add('hidden');
+        document.getElementById('decline-modal').classList.remove('hidden');
+    },
+
+    handleDeclineReasonChange: function (val) {
+        const wrap = document.getElementById('decline-custom-reason-wrap');
+        if (val === 'Other') {
+            wrap.classList.remove('hidden');
+            document.getElementById('decline-reason-text').focus();
+        } else {
+            wrap.classList.add('hidden');
+        }
+    },
+
+    closeDeclineModal: function () {
+        document.getElementById('decline-modal').classList.add('hidden');
+    },
+
+    submitDecline: async function () {
+        const id = document.getElementById('decline-appt-id').value;
+        const selectVal = document.getElementById('decline-reason-select').value;
+        const customVal = document.getElementById('decline-reason-text').value.trim();
+
+        let reason = selectVal;
+        if (selectVal === 'Other') {
+            if (!customVal) {
+                this.showToast("Please describe the reason.", "warning");
+                return;
+            }
+            reason = customVal;
+        }
+
+        this.closeDeclineModal();
+        this.showLoader("Processing decline...");
+        try {
+            const response = await fetch('api/appointments/update_status.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    appointment_id: id,
+                    status: 'cancelled',
+                    reason: reason
+                })
+            });
+            const result = await response.json();
+            this.hideLoader();
+
+            if (result.status === 'success') {
+                this.showToast(result.message, "success");
+                if (document.getElementById('admin-dashboard').classList.contains('active')) this.renderAdminDashboard();
+                if (document.getElementById('admin-global-queue').classList.contains('active')) this.renderGlobalQueue();
+            } else {
+                this.showToast(result.message, "error");
+            }
+        } catch (e) {
+            this.hideLoader();
+            this.showToast("Failed to decline appointment.", "error");
+        }
+    },
+
+    viewCancellationReason: function (id) {
+        const apt = this.currentAppointments.find(a => a.id == id);
+        if (!apt) return;
+
+        document.getElementById('view-cancel-service').textContent = `${apt.service_name} (${apt.appointment_date})`;
+        document.getElementById('view-cancel-reason').textContent = apt.cancellation_reason || 'No specific reason provided by the clinic.';
+        document.getElementById('view-cancellation-modal').classList.remove('hidden');
+    },
+
+    closeViewCancellation: function () {
+        document.getElementById('view-cancellation-modal').classList.add('hidden');
+    },
+
+    toggleStaffRegistration: function (isStaff) {
+        const extraFields = document.getElementById('dentist-extra-fields');
+        const toggleText = document.getElementById('staff-reg-toggle-text');
+        const staffFlag = document.getElementById('reg-is-staff');
+
+        if (isStaff) {
+            extraFields.classList.remove('hidden');
+            staffFlag.value = "1";
+            toggleText.innerHTML = `Registering as Clinic Personnel. <a href="#" class="font-bold text-primary" onclick="app.toggleStaffRegistration(false)">Switch to Patient</a>`;
+            this.showToast("Staff registration mode activated.", "info");
+        } else {
+            extraFields.classList.add('hidden');
+            staffFlag.value = "0";
+            toggleText.innerHTML = `Are you a clinic member? <a href="#" class="font-bold text-primary" onclick="app.toggleStaffRegistration(true)">Register as Staff</a>`;
+        }
+    },
+
+    updateProfile: async function () {
         const payload = {
             user_id: this.currentUser.id,
             full_name: document.getElementById('profile-name').value,
@@ -2009,6 +2502,7 @@ const app = {
             phone: document.getElementById('profile-phone').value,
             professional_id: document.getElementById('profile-pro-id').value,
             position: document.getElementById('profile-position').value,
+            is_active: document.getElementById('profile-is-active').checked ? 1 : 0,
             // Patient Fields
             dob: document.getElementById('profile-dob').value,
             emergency_contact_name: document.getElementById('profile-emergency-name').value,
@@ -2031,7 +2525,7 @@ const app = {
                 this.showToast(result.message, "success");
                 this.currentUser = result.user; // Update local session
                 this.closeProfileModal();
-                
+
                 // Refresh UI
                 if (this.currentUser.role === 'patient') {
                     this.renderPatientDashboard();
@@ -2049,22 +2543,22 @@ const app = {
     },
 
     // --- Reward Points System ---
-    openRewardsModal: function() {
+    openRewardsModal: function () {
         const u = this.currentUser;
-        if(!u) return;
+        if (!u) return;
 
         document.getElementById('rewards-total-balance').textContent = u.reward_points || 0;
         document.getElementById('rewards-modal').classList.remove('hidden');
-        
+
         this.loadRewards();
         this.loadRewardHistory();
     },
 
-    closeRewardsModal: function() {
+    closeRewardsModal: function () {
         document.getElementById('rewards-modal').classList.add('hidden');
     },
 
-    switchRewardsTab: function(tabId, el) {
+    switchRewardsTab: function (tabId, el) {
         // Update tab buttons
         const tabContainer = el.parentElement;
         tabContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -2073,19 +2567,19 @@ const app = {
         // Update content
         document.getElementById('reward-options').classList.add('hidden');
         document.getElementById('reward-history').classList.add('hidden');
-        
-        if(tabId === 'options') document.getElementById('reward-options').classList.remove('hidden');
-        if(tabId === 'history') document.getElementById('reward-history').classList.remove('hidden');
+
+        if (tabId === 'options') document.getElementById('reward-options').classList.remove('hidden');
+        if (tabId === 'history') document.getElementById('reward-history').classList.remove('hidden');
     },
 
-    loadRewards: async function() {
+    loadRewards: async function () {
         const container = document.getElementById('rewards-list-container');
-        if(!container) return;
+        if (!container) return;
 
         try {
             const response = await fetch('api/rewards/list.php');
             const result = await response.json();
-            if(result.status === 'success') {
+            if (result.status === 'success') {
                 let html = '';
                 result.data.forEach(r => {
                     const canAfford = (this.currentUser.reward_points || 0) >= r.points_required;
@@ -2111,20 +2605,20 @@ const app = {
                 });
                 container.innerHTML = html;
             }
-        } catch(e) {
+        } catch (e) {
             container.innerHTML = '<div class="text-error italic">Failed to load rewards.</div>';
         }
     },
 
-    loadRewardHistory: async function() {
+    loadRewardHistory: async function () {
         const body = document.getElementById('reward-history-body');
-        if(!body) return;
+        if (!body) return;
 
         try {
             const response = await fetch(`api/rewards/history.php?patient_id=${this.currentUser.id}`);
             const result = await response.json();
-            if(result.status === 'success') {
-                if(result.data.length === 0) {
+            if (result.status === 'success') {
+                if (result.data.length === 0) {
                     body.innerHTML = '<tr><td colspan="3" class="text-center py-2 text-dim">No point activity yet.</td></tr>';
                     return;
                 }
@@ -2145,19 +2639,19 @@ const app = {
                 });
                 body.innerHTML = html;
             }
-        } catch(e) {
+        } catch (e) {
             body.innerHTML = '<tr><td colspan="3" class="text-center text-error">Failed to load history.</td></tr>';
         }
     },
 
-    redeemReward: async function(rewardId, rewardName, points) {
-        if(!await this.confirmAction(`Redeem ${points} points for "${rewardName}"?`)) return;
+    redeemReward: async function (rewardId, rewardName, points) {
+        if (!await this.confirmAction(`Redeem ${points} points for "${rewardName}"?`)) return;
 
         this.showLoader("Processing redemption...");
         try {
             const response = await fetch('api/rewards/redeem.php', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     patient_id: this.currentUser.id,
                     reward_id: rewardId
@@ -2166,7 +2660,7 @@ const app = {
             const result = await response.json();
             this.hideLoader();
 
-            if(result.status === 'success') {
+            if (result.status === 'success') {
                 this.showToast(`Success! You redeemed: ${rewardName}`, "success");
                 this.currentUser.reward_points = result.new_balance;
                 this.renderPatientDashboard(); // Refresh dash
@@ -2174,7 +2668,7 @@ const app = {
             } else {
                 this.showToast(result.message, "error");
             }
-        } catch(e) {
+        } catch (e) {
             this.hideLoader();
             this.showToast("Redemption failed. Check connection.", "error");
         }
@@ -2239,17 +2733,17 @@ const app = {
     },
 
     submitWalkin: async function () {
-        const patientId  = document.getElementById('walkin-patient').value;
-        const dentistId  = document.getElementById('walkin-dentist').value;
-        const serviceId  = document.getElementById('walkin-service').value;
-        const date       = document.getElementById('walkin-date').value;
-        const time       = document.getElementById('walkin-time').value;
+        const patientId = document.getElementById('walkin-patient').value;
+        const dentistId = document.getElementById('walkin-dentist').value;
+        const serviceId = document.getElementById('walkin-service').value;
+        const date = document.getElementById('walkin-date').value;
+        const time = document.getElementById('walkin-time').value;
 
-        if (!patientId)  { this.showToast("Please select a patient.",  "warning"); return; }
-        if (!dentistId)  { this.showToast("Please select a dentist.",  "warning"); return; }
-        if (!serviceId)  { this.showToast("Please select a service.",  "warning"); return; }
-        if (!date)       { this.showToast("Please choose a date.",     "warning"); return; }
-        if (!time)       { this.showToast("Please choose a start time.", "warning"); return; }
+        if (!patientId) { this.showToast("Please select a patient.", "warning"); return; }
+        if (!dentistId) { this.showToast("Please select a dentist.", "warning"); return; }
+        if (!serviceId) { this.showToast("Please select a service.", "warning"); return; }
+        if (!date) { this.showToast("Please choose a date.", "warning"); return; }
+        if (!time) { this.showToast("Please choose a start time.", "warning"); return; }
 
         // Validate clinic hours (08:00–17:00)
         const [h] = time.split(':').map(Number);
@@ -2269,11 +2763,11 @@ const app = {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    patient_id:       parseInt(patientId),
-                    dentist_id:       parseInt(dentistId),
-                    service_id:       parseInt(serviceId),
+                    patient_id: parseInt(patientId),
+                    dentist_id: parseInt(dentistId),
+                    service_id: parseInt(serviceId),
                     appointment_date: date,
-                    start_time:       time + ':00'
+                    start_time: time + ':00'
                 })
             });
             const result = await response.json();
@@ -2296,6 +2790,123 @@ const app = {
         } finally {
             btn.disabled = false;
             btn.innerHTML = "<i class='bx bx-check-circle mr-1'></i> Register Walk-in";
+        }
+    },
+
+    // ===================================================================
+    // REPORTS & ANALYTICS
+    // ===================================================================
+    handleReportQuickSelect: function () {
+        const val = document.getElementById('report-quick-select').value;
+        const startInput = document.getElementById('report-start-date');
+        const endInput = document.getElementById('report-end-date');
+
+        const now = new Date();
+        const y = now.getFullYear();
+        const mStr = String(now.getMonth() + 1).padStart(2, '0');
+        const dStr = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${y}-${mStr}-${dStr}`;
+
+        let start, end;
+
+        if (val === 'today') {
+            start = end = todayStr;
+        } else if (val === 'this_week') {
+            const firstDay = new Date(now.setDate(now.getDate() - now.getDay()));
+            const lastDay = new Date(now.setDate(now.getDate() - now.getDay() + 6));
+            start = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`;
+            end = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
+        } else if (val === 'this_month') {
+            const now2 = new Date();
+            start = `${now2.getFullYear()}-${String(now2.getMonth() + 1).padStart(2, '0')}-01`;
+            const lastDayObj = new Date(now2.getFullYear(), now2.getMonth() + 1, 0);
+            end = `${lastDayObj.getFullYear()}-${String(lastDayObj.getMonth() + 1).padStart(2, '0')}-${String(lastDayObj.getDate()).padStart(2, '0')}`;
+        }
+
+        if (val !== 'custom') {
+            startInput.value = start;
+            endInput.value = end;
+        }
+    },
+
+    generateReport: async function () {
+        const start = document.getElementById('report-start-date').value;
+        const end = document.getElementById('report-end-date').value;
+
+        if (!start || !end) {
+            this.showToast("Please select a valid date range.", "warning");
+            return;
+        }
+
+        this.showLoader("Aggregating report data...");
+        try {
+            const res = await fetch(`api/reports/generate.php?start_date=${start}&end_date=${end}`);
+            const result = await res.json();
+            this.hideLoader();
+
+            if (result.status === 'success') {
+                this.renderReportData(result.data);
+                document.getElementById('report-content').classList.remove('hidden');
+                this.showToast("Report generated successfully.", "success");
+            } else {
+                this.showToast(result.message, "error");
+            }
+        } catch (e) {
+            this.hideLoader();
+            this.showToast("Failed to fetch report data.", "error");
+        }
+    },
+
+    renderReportData: function (data) {
+        // Summary Stats
+        document.getElementById('report-stat-revenue').textContent = '₱' + parseFloat(data.revenue.total_billed).toFixed(2);
+        document.getElementById('report-stat-appointments').textContent = data.appointments.total_appointments;
+        document.getElementById('report-stat-patients').textContent = data.patients.total_seen;
+
+        // Deep Dive Stats
+        document.getElementById('report-appts-completed').textContent = data.appointments.completed || 0;
+        document.getElementById('report-appts-cancelled').textContent = data.appointments.cancelled || 0;
+        document.getElementById('report-appts-walkin').textContent = data.appointments.walk_in || 0;
+        document.getElementById('report-appts-upcoming').textContent = data.appointments.upcoming || 0;
+
+        document.getElementById('report-rev-paid').textContent = '₱' + parseFloat(data.revenue.total_paid).toFixed(2);
+        document.getElementById('report-rev-unpaid').textContent = '₱' + parseFloat(data.revenue.total_unpaid).toFixed(2);
+
+        document.getElementById('report-pat-total').textContent = data.patients.total_seen || 0;
+        document.getElementById('report-pat-new').textContent = data.patients.new_patients || 0;
+
+        // Services Table
+        const sBody = document.getElementById('report-services-body');
+        if (!data.services || data.services.length === 0) {
+            sBody.innerHTML = '<tr><td colspan="3" class="text-center py-1 text-dim">No services rendered in this period.</td></tr>';
+        } else {
+            sBody.innerHTML = data.services.map(s => `
+                <tr class="table-row-hover">
+                    <td>${s.service_name}</td>
+                    <td class="text-center font-bold">${s.usage_count}</td>
+                    <td class="text-right text-success font-bold">₱${parseFloat(s.total_revenue).toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Dentists Table
+        const dBody = document.getElementById('report-dentists-body');
+        if (!data.dentists || data.dentists.length === 0) {
+            dBody.innerHTML = '<tr><td colspan="3" class="text-center py-1 text-dim">No dentist activity in this period.</td></tr>';
+        } else {
+            dBody.innerHTML = data.dentists.map(d => `
+                <tr class="table-row-hover">
+                    <td>${d.dentist_name}</td>
+                    <td class="text-center font-bold">${d.total_appointments}</td>
+                    <td class="text-right">${d.unique_patients}</td>
+                </tr>
+            `).join('');
+        }
+    },
+
+    exportReport: function (format) {
+        if (format === 'print') {
+            window.print();
         }
     }
 };

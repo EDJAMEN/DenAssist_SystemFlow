@@ -22,7 +22,7 @@ if ($dentist_id > 0 && !empty($date)) {
 
     // 2. Get existing appointments for this specific dentist on this date
     $booked = [];
-    $stmt = $conn->prepare("SELECT start_time, end_time FROM appointments WHERE dentist_id = ? AND appointment_date = ? AND status != 'cancelled'");
+    $stmt = $conn->prepare("SELECT start_time, end_time FROM appointments WHERE dentist_id = ? AND appointment_date = ? AND status IN ('upcoming', 'completed', 'walk-in')");
     $stmt->bind_param("is", $dentist_id, $date);
     $stmt->execute();
     $result = $stmt->get_result();

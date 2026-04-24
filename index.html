@@ -66,10 +66,6 @@
                             <i class='bx bx-lock-alt'></i>
                             <input type="password" placeholder="Password" required>
                         </div>
-                        <div class="role-selector soft-shadow-sm">
-                            <label><input type="radio" name="login-role" value="patient" checked> Patient</label>
-                            <label><input type="radio" name="login-role" value="admin"> Admin</label>
-                        </div>
                         <div class="text-right mt-1 mb-2">
                             <a href="#" class="text-sm font-medium text-dim hover-lift" style="display:inline-block;"
                                 onclick="app.switchScreen('forgot-password-section')">Forgot Password?</a>
@@ -78,6 +74,69 @@
                             onclick="app.login()">Login</button>
 
                     </form>
+
+                    <!-- User Agreement Section -->
+                    <div id="register-agreement" class="auth-form">
+                        <div class="agreement-content"
+                            style="height: 250px; overflow-y: scroll; padding: 15px; background: #f8f9fa; border-radius: 12px; margin-bottom: 15px; text-align: left; border: 1px solid #eee;">
+                            <h3 class="font-bold text-sm mb-1 text-primary" style="margin-top: 0;"><i
+                                    class='bx bx-book-content mr-1'></i> User Agreement & Privacy Policy</h3>
+                            <div class="text-sm text-dim leading-relaxed">
+                                <p class="mb-1" style="font-size: 13px;">Please review the terms of service for the
+                                    DentAssist Clinic Management System:</p>
+                                <ul
+                                    style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+                                    <li>
+                                        <strong class="text-black block" style="margin-bottom: 2px;">1. Information
+                                            Collection</strong>
+                                        We collect personal data (Name, DOB, Phone, Email) and medical records
+                                        exclusively for dental treatment and scheduling purposes.
+                                    </li>
+                                    <li>
+                                        <strong class="text-black block" style="margin-bottom: 2px;">2. Data Privacy &
+                                            Security</strong>
+                                        Your information is encrypted and stored securely. Only authorized clinic staff
+                                        and your assigned dentist have access to your clinical notes.
+                                    </li>
+                                    <li>
+                                        <strong class="text-black block" style="margin-bottom: 2px;">3. Cancellation
+                                            Policy</strong>
+                                        Patients are required to notify the clinic at least 24 hours before their
+                                        scheduled time if they wish to cancel or reschedule.
+                                    </li>
+                                    <li>
+                                        <strong class="text-black block" style="margin-bottom: 2px;">4. Reward Points
+                                            System</strong>
+                                        Loyalty points are earned after each completed visit. These points are
+                                        non-transferable and can only be redeemed for discounts or free services within
+                                        this clinic.
+                                    </li>
+                                    <li>
+                                        <strong class="text-black block" style="margin-bottom: 2px;">5. Medical
+                                            Accuracy</strong>
+                                        You are responsible for providing accurate medical history, including allergies
+                                        and current medications, to ensure safe treatment.
+                                    </li>
+                                    <li>
+                                        <strong class="text-black block" style="margin-bottom: 2px;">6.
+                                            Liability</strong>
+                                        DentAssist is a management platform. Clinical outcomes are the responsibility of
+                                        the licensed dental professional performing the treatment.
+                                    </li>
+                                </ul>
+                                <p class="mt-2 text-xs font-bold text-dim"
+                                    style="border-top: 1px solid #eee; padding-top: 5px;">By checking the box below, you
+                                    acknowledge that you have read and understood these terms.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <input type="checkbox" id="agree-checkbox" class="mr-1">
+                            <label for="agree-checkbox" class="text-sm">I have read and agree to the Terms &
+                                Conditions</label>
+                        </div>
+                        <button type="button" class="btn-primary w-full shadow-hover"
+                            onclick="app.acceptAgreement()">Continue to Registration</button>
+                    </div>
 
                     <!-- Register Form -->
                     <form id="form-register" class="auth-form">
@@ -97,14 +156,7 @@
                             <i class='bx bx-lock-alt'></i>
                             <input type="password" id="reg-password" placeholder="Password" required>
                         </div>
-                        <div class="role-selector soft-shadow-sm mb-1">
-                            <label onclick="app.toggleRegisterFields('patient')">
-                                <input type="radio" name="register-role" value="patient" checked> Patient
-                            </label>
-                            <label onclick="app.toggleRegisterFields('admin')">
-                                <input type="radio" name="register-role" value="admin"> Admin / Dentist
-                            </label>
-                        </div>
+                        <!-- Auto-determined role based on email -->
 
                         <!-- Dentist Specific Fields (Initially Hidden) -->
                         <div id="dentist-extra-fields" class="hidden transition-all">
@@ -114,7 +166,8 @@
                             </div>
                             <div class="input-group">
                                 <i class='bx bx-briefcase-alt'></i>
-                                <select id="reg-dentist-position" class="custom-input bg-white" style="height: auto; padding: 0.6rem 2.5rem;">
+                                <select id="reg-dentist-position" class="custom-input bg-white"
+                                    style="height: auto; padding: 0.6rem 2.5rem;">
                                     <option value="" disabled selected>Select Position</option>
                                     <option value="General Dentist">General Dentist</option>
                                     <option value="Orthodontist">Orthodontist</option>
@@ -128,6 +181,14 @@
                         <button type="button" class="btn-primary w-full mt-2 shadow-hover"
                             onclick="app.register()">Create
                             Account</button>
+
+                        <div class="text-center mt-2 border-top pt-1">
+                            <p id="staff-reg-toggle-text" class="text-xs text-dim">Are you a clinic member? <a href="#"
+                                    class="font-bold text-primary" onclick="app.toggleStaffRegistration(true)">Register
+                                    as Staff</a></p>
+                        </div>
+
+                        <input type="hidden" id="reg-is-staff" value="0">
 
                     </form>
                 </div>
@@ -271,8 +332,8 @@
                         <span id="patient-nav-name" class="font-medium">Loading...</span>
                         <span class="profile-indicator">Profile <i class='bx bx-chevron-right'></i></span>
                     </div>
-                    <button class="btn-icon circle outline ml-1" onclick="event.stopPropagation(); app.logout()" title="Logout"><i
-                            class='bx bx-log-out'></i></button>
+                    <button class="btn-icon circle outline ml-1" onclick="event.stopPropagation(); app.logout()"
+                        title="Logout"><i class='bx bx-log-out'></i></button>
                 </div>
             </nav>
 
@@ -292,6 +353,8 @@
                             <span class="profile-indicator">View Rewards <i class='bx bx-chevron-right'></i></span>
                         </div>
                     </div>
+
+                    <div id="patient-alerts"></div>
 
                     <div class="dashboard-panels mt-2 flex-col gap-2">
                         <!-- Upcoming Appointment Highlight (Dynamic) -->
@@ -320,7 +383,7 @@
                                 <p class="text-xs text-dim mt-1">View your past dental records.</p>
                             </div>
                             <div class="card flex-1 text-center hover-lift bg-white" style="cursor: pointer;"
-                                onclick="app.triggerMockAction('Opening Billing & Invoices...', 'info')">
+                                onclick="app.switchPatientTab('billing')">
                                 <div class="avatar-large mx-auto flex-center bg-muted text-dim mb-1 border-dashed">
                                     <i class='bx bx-receipt text-xl'></i>
                                 </div>
@@ -333,7 +396,9 @@
                         <div class="card detail-card bg-white mt-1">
                             <h3 class="card-title border-bottom pb-1"><i class='bx bx-user-pin text-primary mr-1'></i>
                                 Personal Information</h3>
-                            <button class="btn-text text-primary text-xs font-bold" onclick="app.openProfileModal()" style="position:absolute; top: 1.25rem; right: 1.25rem;"><i class='bx bx-edit'></i> Edit Profile</button>
+                            <button class="btn-text text-primary text-xs font-bold" onclick="app.openProfileModal()"
+                                style="position:absolute; top: 1.25rem; right: 1.25rem;"><i class='bx bx-edit'></i> Edit
+                                Profile</button>
                             <div class="form-grid mt-2" style="grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                                 <div>
                                     <p class="text-xs text-dim uppercase font-bold">Email Address</p>
@@ -487,6 +552,34 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- NEW: Billing & Invoices tab -->
+                <div id="patient-billing" class="patient-tab">
+                    <div class="page-header mb-2 border-bottom pb-2 flex items-center justify-between">
+                        <div>
+                            <h2 class="section-title mb-0">Billing & Invoices</h2>
+                            <p class="text-dim mt-1">Review your recent payments and outstanding balances.</p>
+                        </div>
+                        <button class="btn-outline w-auto" onclick="app.switchPatientTab('dashboard')"><i
+                                class='bx bx-arrow-back mr-1'></i> Back to Home</button>
+                    </div>
+
+                    <div class="card detail-card bg-white p-0 overflow-hidden mt-2">
+                        <table class="data-table">
+                            <thead class="bg-muted">
+                                <tr>
+                                    <th class="pl-2">Date</th>
+                                    <th>Service/Procedure</th>
+                                    <th>Status</th>
+                                    <th class="text-right pr-2">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billing-history-body">
+                                <tr><td colspan="4" class="text-center py-2 text-dim"><i class="bx bx-loader-alt bx-spin mr-1"></i> Loading invoices...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -515,11 +608,17 @@
                     <li onclick="app.switchAdminTab('patients', this)">
                         <i class='bx bx-user-circle'></i> Patients
                     </li>
+                    <li onclick="app.switchAdminTab('reports', this)">
+                        <i class='bx bx-pie-chart-alt-2'></i> Analytics
+                    </li>
                     <li id="menu-dentists" class="hidden" onclick="app.switchAdminTab('dentists', this)">
                         <i class='bx bx-plus-medical'></i> Professionals
                     </li>
                     <li id="menu-approvals" class="hidden" onclick="app.switchAdminTab('approvals', this)">
                         <i class='bx bx-user-check'></i> Approvals
+                    </li>
+                    <li onclick="app.switchAdminTab('archive', this)"><i class='bx bx-archive-in'></i>
+                        <span>Archive</span>
                     </li>
                     <li onclick="app.switchAdminTab('settings', this)"><i class='bx bx-cog'></i> <span>Settings</span>
                     </li>
@@ -530,10 +629,12 @@
                             style="border-radius: 50%; font-size: 14px; width: 40px; height: 40px;">--</div>
                         <div class="flex-col" style="gap: 2px;">
                             <span id="admin-sidebar-name" class="d-block text-sm font-bold">Loading...</span>
-                            <span class="profile-indicator" style="margin-left:0; width:fit-content;">Professional Profile <i class='bx bx-chevron-right'></i></span>
+                            <span class="profile-indicator" style="margin-left:0; width:fit-content;">Professional
+                                Profile <i class='bx bx-chevron-right'></i></span>
                         </div>
                         <div class="flex flex-col gap-1 ml-auto">
-                            <button class="btn-icon circle outline sm" onclick="event.stopPropagation(); app.logout()" title="Logout"><i class='bx bx-log-out'></i></button>
+                            <button class="btn-icon circle outline sm" onclick="event.stopPropagation(); app.logout()"
+                                title="Logout"><i class='bx bx-log-out'></i></button>
                         </div>
                     </div>
                 </div>
@@ -564,11 +665,11 @@
                         </div>
                         <div class="card stat-card hover-lift bg-white">
                             <div class="stat-info">
-                                <h3 class="text-dim text-xs uppercase font-bold tracking-wide">Walk-ins</h3>
-                                <h2 id="admin-stat-walkins" class="mt-1 text-xl">0</h2>
+                                <h3 class="text-dim text-xs uppercase font-bold tracking-wide">Completed Today</h3>
+                                <h2 id="admin-stat-completed" class="mt-1 text-xl">0</h2>
                             </div>
                             <div class="stat-icon-wrap bg-success-light text-success">
-                                <i class='bx bx-walk'></i>
+                                <i class='bx bx-check-double'></i>
                             </div>
                         </div>
                         <div class="card stat-card hover-lift bg-white">
@@ -612,8 +713,8 @@
                             <div class="action-grid mt-2">
                                 <button
                                     class="btn-outline bg-white w-full text-left py-1 hover-lift soft-shadow-sm border-transparent"
-                                    onclick="app.openWalkinModal()"><i
-                                        class='bx bx-plus-circle text-dim mr-1'></i> Walk-in Booking</button>
+                                    onclick="app.openWalkinModal()"><i class='bx bx-plus-circle text-dim mr-1'></i>
+                                    Walk-in Booking</button>
                                 <button
                                     class="btn-outline bg-white w-full text-left py-1 mt-1 hover-lift soft-shadow-sm border-transparent"
                                     onclick="app.switchAdminTab('patients')"><i class='bx bx-search text-dim mr-1'></i>
@@ -624,6 +725,28 @@
                                         class='bx bx-receipt text-dim mr-1'></i> New Invoice</button>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Completed Appointments -->
+                    <div class="card detail-card bg-white mt-2">
+                        <div class="flex-center-between mb-1 border-bottom pb-1">
+                            <h3 class="card-title mb-0 border-none pb-0"><i
+                                    class='bx bx-check-double text-success mr-1'></i> Completed Appointments (Today)</h3>
+                        </div>
+                        <table class="data-table mt-1">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Service</th>
+                                    <th>Dentist</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-completed-body">
+                                <tr><td colspan="5" class="text-center py-2 text-dim">Loading completed appointments...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -637,20 +760,17 @@
                             <h2>Appointment Calendar</h2>
                             <p class="text-dim text-sm mt-0 text-muted">Manage all clinic schedules.</p>
                         </div>
-                        <button class="btn-primary shadow-hover"
-                            onclick="app.openWalkinModal()"><i
+                        <button class="btn-primary shadow-hover" onclick="app.openWalkinModal()"><i
                                 class='bx bx-plus mr-1'></i> Add Walk-in</button>
                     </header>
                     <div class="card mt-2 detail-card bg-white">
                         <div class="calendar-header flex-center-between mb-2">
-                            <h3 class="font-bold text-lg">October 2026</h3>
+                            <h3 class="font-bold text-lg" id="admin-calendar-month-title">October 2026</h3>
                             <div class="btn-group">
-                                <button class="btn-icon outline rounded-l bg-white"
-                                    onclick="app.triggerMockAction('Loading past month...', 'info')"><i
+                                <button class="btn-icon outline rounded-l bg-white" onclick="app.prevAdminMonth()"><i
                                         class='bx bx-chevron-left'></i></button>
                                 <button class="btn-icon outline rounded-r border-l-none bg-white"
-                                    onclick="app.triggerMockAction('Loading next month...', 'info')"><i
-                                        class='bx bx-chevron-right'></i></button>
+                                    onclick="app.nextAdminMonth()"><i class='bx bx-chevron-right'></i></button>
                             </div>
                         </div>
                         <div class="calendar-grid bg-muted">
@@ -868,6 +988,39 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Personal Availability Card (New) -->
+                            <div class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
+                                <div class="bg-success-light p-2 border-bottom flex items-center">
+                                    <div class="stat-icon-wrap sm bg-white text-success mr-1">
+                                        <i class='bx bx-user-check'></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm mb-0">Personal Status</h4>
+                                        <p class="text-xs text-dim">Manage your own booking availability.</p>
+                                    </div>
+                                </div>
+                                <div class="p-2">
+                                    <div class="form-group mb-0">
+                                        <label
+                                            class="flex items-center gap-1 cursor-pointer bg-muted p-1 rounded border-dashed"
+                                            style="border-width: 1px;">
+                                            <input type="checkbox" id="set-is-active"
+                                                style="width: 20px; height: 20px;">
+                                            <div class="flex-col">
+                                                <span class="text-sm font-bold uppercase text-primary">Active for
+                                                    Booking</span>
+                                                <span class="text-xs text-dim">When enabled, patients can book
+                                                    appointments with you.</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="mt-2 pt-1 border-top border-dashed">
+                                        <p class="text-xs italic text-dim"><i class='bx bx-info-circle'></i> This
+                                            setting overrides global clinic hours for your profile.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="flex-center mt-3 pt-2 border-top">
@@ -878,6 +1031,225 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Reports & Analytics Page -->
+                <div id="admin-reports" class="admin-tab">
+                    <header class="admin-header flex-center-between mb-2">
+                        <div>
+                            <button class="btn-text text-dim text-sm p-0 mb-1 hover-lift"
+                                onclick="app.switchAdminTab('dashboard')"><i class='bx bx-arrow-back'></i> Back to
+                                Dashboard</button>
+                            <h2>Reports & Analytics</h2>
+                            <p class="text-dim text-sm mt-0 text-muted">Generate comprehensive operational and financial
+                                insights.</p>
+                        </div>
+                        <div class="flex gap-1">
+                            <button class="btn-outline bg-white soft-shadow-sm" onclick="app.exportReport('print')"><i
+                                    class='bx bx-printer mr-1'></i> Print</button>
+                        </div>
+                    </header>
+
+                    <div class="card detail-card bg-white p-2 border-none soft-shadow-sm mb-2">
+                        <div class="form-grid items-end" style="grid-template-columns: 1fr 1fr 1fr auto;">
+                            <div class="form-group mb-0">
+                                <label class="text-xs uppercase tracking-wider font-bold text-dim mb-1 d-block">Quick
+                                    Select</label>
+                                <select id="report-quick-select" class="custom-select bg-muted shadow-sm"
+                                    onchange="app.handleReportQuickSelect()">
+                                    <option value="today">Today</option>
+                                    <option value="this_week">This Week</option>
+                                    <option value="this_month" selected>This Month</option>
+                                    <option value="custom">Custom Range</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="text-xs uppercase tracking-wider font-bold text-dim mb-1 d-block">Start
+                                    Date</label>
+                                <input type="date" id="report-start-date" class="modern-time-input w-full">
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="text-xs uppercase tracking-wider font-bold text-dim mb-1 d-block">End
+                                    Date</label>
+                                <input type="date" id="report-end-date" class="modern-time-input w-full">
+                            </div>
+                            <div class="form-group mb-0">
+                                <button class="btn-primary shadow-hover h-full" onclick="app.generateReport()">
+                                    <i class='bx bx-refresh mr-1'></i> Generate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="report-content" class="hidden">
+                        <!-- Summary Stats -->
+                        <div class="stats-grid mb-2">
+                            <div class="card stat-card bg-primary-light text-primary">
+                                <div class="stat-info">
+                                    <h3 class="text-xs uppercase font-bold tracking-wide"
+                                        style="color: inherit; opacity: 0.8;">Total Revenue</h3>
+                                    <h2 id="report-stat-revenue" class="mt-1 text-2xl font-bold">₱0.00</h2>
+                                </div>
+                                <div class="stat-icon-wrap bg-white">
+                                    <i class='bx bx-money'></i>
+                                </div>
+                            </div>
+                            <div class="card stat-card bg-success-light text-success">
+                                <div class="stat-info">
+                                    <h3 class="text-xs uppercase font-bold tracking-wide"
+                                        style="color: inherit; opacity: 0.8;">Total Appointments</h3>
+                                    <h2 id="report-stat-appointments" class="mt-1 text-2xl font-bold">0</h2>
+                                </div>
+                                <div class="stat-icon-wrap bg-white">
+                                    <i class='bx bx-calendar-check'></i>
+                                </div>
+                            </div>
+                            <div class="card stat-card bg-warning-light text-warning">
+                                <div class="stat-info">
+                                    <h3 class="text-xs uppercase font-bold tracking-wide"
+                                        style="color: inherit; opacity: 0.8;">Patients Seen</h3>
+                                    <h2 id="report-stat-patients" class="mt-1 text-2xl font-bold">0</h2>
+                                </div>
+                                <div class="stat-icon-wrap bg-white">
+                                    <i class='bx bx-group'></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Tables -->
+                        <div class="grid-2 gap-2 responsive-flex-col">
+                            <!-- Services Table -->
+                            <div class="card detail-card bg-white p-0 overflow-hidden soft-shadow-sm border-none">
+                                <div class="bg-muted p-1 px-2 border-bottom">
+                                    <h3 class="font-bold text-sm mb-0"><i class='bx bx-list-ol text-primary mr-1'></i>
+                                        Top Services</h3>
+                                </div>
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Service Name</th>
+                                            <th class="text-center">Usage</th>
+                                            <th class="text-right pr-2">Revenue</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="report-services-body">
+                                        <tr>
+                                            <td colspan="3" class="text-center py-1 text-dim">No data</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Dentists Table -->
+                            <div class="card detail-card bg-white p-0 overflow-hidden soft-shadow-sm border-none">
+                                <div class="bg-muted p-1 px-2 border-bottom">
+                                    <h3 class="font-bold text-sm mb-0"><i class='bx bx-user-pin text-primary mr-1'></i>
+                                        Dentist Performance</h3>
+                                </div>
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Dentist</th>
+                                            <th class="text-center">Appts</th>
+                                            <th class="text-right pr-2">Unique Patients</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="report-dentists-body">
+                                        <tr>
+                                            <td colspan="3" class="text-center py-1 text-dim">No data</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Financial Breakdown -->
+                            <div
+                                class="card detail-card bg-white p-0 overflow-hidden soft-shadow-sm border-none col-span-full">
+                                <div class="bg-muted p-1 px-2 border-bottom">
+                                    <h3 class="font-bold text-sm mb-0"><i
+                                            class='bx bx-bar-chart-alt-2 text-primary mr-1'></i> Deep Dive & Financials
+                                    </h3>
+                                </div>
+                                <div class="p-2 grid-3 gap-2 text-sm">
+                                    <div class="border rounded p-1">
+                                        <p class="text-dim mb-1 font-bold">Appointment Status</p>
+                                        <div class="flex-center-between border-bottom border-dashed pb-0 mb-0"><span
+                                                class="text-success">Completed</span> <span id="report-appts-completed"
+                                                class="font-bold">0</span></div>
+                                        <div class="flex-center-between border-bottom border-dashed pb-0 mb-0 mt-1">
+                                            <span class="text-danger">Cancelled</span> <span id="report-appts-cancelled"
+                                                class="font-bold">0</span></div>
+                                        <div class="flex-center-between border-bottom border-dashed pb-0 mb-0 mt-1">
+                                            <span class="text-primary">Walk-ins</span> <span id="report-appts-walkin"
+                                                class="font-bold">0</span></div>
+                                        <div class="flex-center-between pb-0 mb-0 mt-1"><span
+                                                class="text-warning">Upcoming</span> <span id="report-appts-upcoming"
+                                                class="font-bold">0</span></div>
+                                    </div>
+                                    <div class="border rounded p-1">
+                                        <p class="text-dim mb-1 font-bold">Invoice Status</p>
+                                        <div class="flex-center-between border-bottom border-dashed pb-0 mb-0"><span
+                                                class="text-success">Total Paid</span> <span id="report-rev-paid"
+                                                class="font-bold">₱0.00</span></div>
+                                        <div class="flex-center-between pb-0 mb-0 mt-1"><span class="text-danger">Total
+                                                Unpaid</span> <span id="report-rev-unpaid"
+                                                class="font-bold">₱0.00</span></div>
+                                    </div>
+                                    <div class="border rounded p-1">
+                                        <p class="text-dim mb-1 font-bold">Patient Metrics</p>
+                                        <div class="flex-center-between border-bottom border-dashed pb-0 mb-0">
+                                            <span>Total Seen</span> <span id="report-pat-total"
+                                                class="font-bold">0</span></div>
+                                        <div class="flex-center-between pb-0 mb-0 mt-1"><span class="text-success">New
+                                                Registrations</span> <span id="report-pat-new"
+                                                class="font-bold">0</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archive Page -->
+                <div id="admin-archive" class="admin-tab">
+                    <header class="admin-header">
+                        <div>
+                            <button class="btn-text text-dim text-sm p-0 mb-1 hover-lift"
+                                onclick="app.switchAdminTab('dashboard')"><i class='bx bx-arrow-back'></i> Back to
+                                Dashboard</button>
+                            <h2>User Archive (Backup)</h2>
+                            <p class="text-dim text-sm mt-0 text-muted">View and restore deleted patients or staff
+                                members.</p>
+                        </div>
+                    </header>
+
+                    <div class="card mt-2 bg-white detail-card">
+                        <div class="search-wrap mb-2">
+                            <i class='bx bx-search search-icon'></i>
+                            <input type="text" id="archive-list-search" class="custom-input search-input"
+                                placeholder="Search archived users..." oninput="app.filterArchiveList(this.value)">
+                        </div>
+                        <div class="overflow-hidden">
+                            <table class="data-table">
+                                <thead class="bg-muted">
+                                    <tr>
+                                        <th class="pl-2">Name</th>
+                                        <th>Role</th>
+                                        <th>Archived On</th>
+                                        <th class="text-right pr-2">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-archive-list-body">
+                                    <!-- Populated by app.updateArchiveList() -->
+                                    <tr>
+                                        <td colspan="4" class="text-center py-2">Loading archive...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
 
                 <!-- NEW: Manage Professionals (Dentists/Admins) -->
                 <div id="admin-dentists" class="admin-tab">
@@ -895,6 +1267,7 @@
                                     <th>Expert Name</th>
                                     <th>Role / Position</th>
                                     <th>Prof. ID</th>
+                                    <th>Status</th>
                                     <th>Contact</th>
                                     <th class="text-right">Action</th>
                                 </tr>
@@ -1012,11 +1385,12 @@
                     <input type="number" id="new-service-duration" class="custom-input bg-muted" value="30">
                 </div>
                 <div class="form-group">
-                    <label>Price ($)</label>
+                    <label>Price (₱)</label>
                     <input type="number" id="new-service-price" class="custom-input bg-muted" value="100">
                 </div>
             </div>
-            <button id="service-modal-btn" class="btn-primary w-full mt-2" onclick="app.saveService()">Save Service</button>
+            <button id="service-modal-btn" class="btn-primary w-full mt-2" onclick="app.saveService()">Save
+                Service</button>
         </div>
     </div>
 
@@ -1049,7 +1423,8 @@
     <!-- MODAL: Booking Confirmation -->
     <div id="booking-confirm-modal" class="bg-glass hidden flex-center"
         style="position: fixed; z-index: 2500; top: 0; left: 0; width: 100%; height: 100%;">
-        <div class="card bg-white soft-shadow-lg" style="width: 480px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
+        <div class="card bg-white soft-shadow-lg"
+            style="width: 480px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
 
             <!-- Header -->
             <div class="flex-center-between border-bottom pb-2 mb-2">
@@ -1062,13 +1437,16 @@
                         <p class="text-xs text-dim">Please review all details before confirming.</p>
                     </div>
                 </div>
-                <button class="btn-icon circle outline" onclick="app.closeBookingConfirmModal()"><i class='bx bx-x'></i></button>
+                <button class="btn-icon circle outline" onclick="app.closeBookingConfirmModal()"><i
+                        class='bx bx-x'></i></button>
             </div>
 
             <!-- Alert Banner -->
-            <div class="card bg-warning-light border-none p-1 mb-2 flex items-center gap-1" style="border-left: 3px solid var(--warning);">
+            <div class="card bg-warning-light border-none p-1 mb-2 flex items-center gap-1"
+                style="border-left: 3px solid var(--warning);">
                 <i class='bx bx-error-circle text-warning text-lg'></i>
-                <p class="text-xs text-dim"><b>Double-check your details.</b> Once confirmed, this slot will be reserved for you.</p>
+                <p class="text-xs text-dim"><b>Double-check your details.</b> Once confirmed, this slot will be reserved
+                    for you.</p>
             </div>
 
             <!-- Booking Summary -->
@@ -1100,7 +1478,8 @@
                         <p id="bc-service-name" class="font-bold text-sm mt-0">--</p>
                     </div>
                     <div>
-                        <span id="bc-service-price" class="badge bg-primary-light text-primary font-bold text-sm">--</span>
+                        <span id="bc-service-price"
+                            class="badge bg-primary-light text-primary font-bold text-sm">--</span>
                     </div>
                 </div>
 
@@ -1138,24 +1517,29 @@
                             <div class="flex items-center gap-1">
                                 <i class='bx bxs-gift text-lg text-warning'></i>
                                 <div>
-                                    <p class="text-xs font-bold uppercase text-warning tracking-tight">exclusive Reward Offer</p>
+                                    <p class="text-xs font-bold uppercase text-warning tracking-tight">exclusive Reward
+                                        Offer</p>
                                     <p class="text-xs text-dim">You have enough points for a discount!</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-1">
                                 <span class="text-xs font-bold text-dim mr-1">Use Points?</span>
-                                <input type="checkbox" id="use-points-toggle" onchange="app.toggleBookingRewards(this)" style="width: 20px; height: 20px; cursor: pointer;"> 
+                                <input type="checkbox" id="use-points-toggle" onchange="app.toggleBookingRewards(this)"
+                                    style="width: 20px; height: 20px; cursor: pointer;">
                             </div>
                         </div>
-                        
+
                         <div id="booking-reward-controls" class="hidden border-top pt-1 mt-1">
                             <div class="flex-col gap-1">
                                 <label class="text-xs font-bold text-dim uppercase">Select Your Reward:</label>
                                 <div class="flex gap-1 items-center">
-                                    <select id="booking-reward-select" class="custom-select flex-1 py-0 px-1 text-sm bg-white" style="height: 38px; margin-top:0;">
+                                    <select id="booking-reward-select"
+                                        class="custom-select flex-1 py-0 px-1 text-sm bg-white"
+                                        style="height: 38px; margin-top:0;">
                                         <option value="">Choosing a reward...</option>
                                     </select>
-                                    <button class="btn-primary py-0 px-2" style="height: 38px;" onclick="app.applyRewardToBooking()">
+                                    <button class="btn-primary py-0 px-2" style="height: 38px;"
+                                        onclick="app.applyRewardToBooking()">
                                         Apply
                                     </button>
                                 </div>
@@ -1181,7 +1565,8 @@
     <!-- MODAL: Walk-in Booking (Admin) -->
     <div id="walkin-modal" class="bg-glass hidden flex-center"
         style="position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%;">
-        <div class="card bg-white soft-shadow-lg" style="width: 550px; max-width: 95%; max-height: 92vh; overflow-y: auto;">
+        <div class="card bg-white soft-shadow-lg"
+            style="width: 550px; max-width: 95%; max-height: 92vh; overflow-y: auto;">
 
             <!-- Header -->
             <div class="flex-center-between border-bottom pb-2 mb-2">
@@ -1194,29 +1579,37 @@
                         <p class="text-xs text-dim">Quickly assign a same-day patient.</p>
                     </div>
                 </div>
-                <button class="btn-icon circle outline" onclick="app.closeWalkinModal()"><i class='bx bx-x'></i></button>
+                <button class="btn-icon circle outline" onclick="app.closeWalkinModal()"><i
+                        class='bx bx-x'></i></button>
             </div>
 
             <!-- Patient Selection -->
             <div class="card bg-muted border-none p-2 mb-2">
                 <h4 class="font-bold text-sm mb-1"><i class='bx bx-user mr-1'></i> 1. Patient Identification</h4>
-                
+
                 <div class="auth-tabs bg-white mt-1 mb-1 soft-shadow-sm" style="padding: 2px;">
-                    <button class="tab-btn active text-sm py-1" id="walkin-tab-search" onclick="app.toggleWalkinPatientTab('search')" style="flex: 1;">Existing Patient</button>
-                    <button class="tab-btn text-sm py-1" id="walkin-tab-new" onclick="app.toggleWalkinPatientTab('new')" style="flex: 1;">New Patient</button>
+                    <button class="tab-btn active text-sm py-1" id="walkin-tab-search"
+                        onclick="app.toggleWalkinPatientTab('search')" style="flex: 1;">Existing Patient</button>
+                    <button class="tab-btn text-sm py-1" id="walkin-tab-new" onclick="app.toggleWalkinPatientTab('new')"
+                        style="flex: 1;">New Patient</button>
                 </div>
 
                 <div id="walkin-sec-search">
                     <div class="search-wrap bg-white mb-1 shadow-sm border">
                         <i class='bx bx-search search-icon text-dim'></i>
-                        <input type="text" id="walkin-search-input" class="custom-input search-input bg-transparent border-none" placeholder="Search name or phone..." oninput="app.searchWalkinPatient(this.value)">
+                        <input type="text" id="walkin-search-input"
+                            class="custom-input search-input bg-transparent border-none"
+                            placeholder="Search name or phone..." oninput="app.searchWalkinPatient(this.value)">
                     </div>
-                    <div id="walkin-search-results" class="bg-white rounded overflow-hidden max-h-32 overflow-y-auto hidden">
+                    <div id="walkin-search-results"
+                        class="bg-white rounded overflow-hidden max-h-32 overflow-y-auto hidden">
                         <!-- Populated dynamically -->
                     </div>
-                    <div id="walkin-selected-patient-badge" class="bg-primary-light text-primary p-1 rounded font-bold text-sm hidden flex-center-between mt-1">
+                    <div id="walkin-selected-patient-badge"
+                        class="bg-primary-light text-primary p-1 rounded font-bold text-sm hidden flex-center-between mt-1">
                         <span id="walkin-selected-patient-name">Patient Name</span>
-                        <button class="btn-text p-0 text-primary text-xs" onclick="app.clearWalkinPatient()"><i class='bx bx-x-circle text-lg'></i></button>
+                        <button class="btn-text p-0 text-primary text-xs" onclick="app.clearWalkinPatient()"><i
+                                class='bx bx-x-circle text-lg'></i></button>
                     </div>
                     <input type="hidden" id="walkin-patient-id">
                 </div>
@@ -1224,10 +1617,12 @@
                 <div id="walkin-sec-new" class="hidden">
                     <div class="form-grid gap-1">
                         <div class="form-group grid-full">
-                            <input type="text" id="walkin-new-name" class="custom-input bg-white" placeholder="Full Name (Required)">
+                            <input type="text" id="walkin-new-name" class="custom-input bg-white"
+                                placeholder="Full Name (Required)">
                         </div>
                         <div class="form-group grid-full">
-                            <input type="tel" id="walkin-new-phone" class="custom-input bg-white" placeholder="Contact Number (Required)">
+                            <input type="tel" id="walkin-new-phone" class="custom-input bg-white"
+                                placeholder="Contact Number (Required)">
                         </div>
                     </div>
                 </div>
@@ -1240,7 +1635,8 @@
                     <div class="form-group mb-1">
                         <label class="text-xs font-bold uppercase text-dim">Requested Service</label>
                         <div class="select-wrapper mt-0">
-                            <select id="walkin-service" class="custom-select bg-white shadow-sm" onchange="app.checkWalkinAutoAssign()">
+                            <select id="walkin-service" class="custom-select bg-white shadow-sm"
+                                onchange="app.checkWalkinAutoAssign()">
                                 <option value="">Loading...</option>
                             </select>
                         </div>
@@ -1248,8 +1644,10 @@
                     <div class="form-group">
                         <label class="text-xs font-bold uppercase text-dim flex-center-between mb-1">
                             <span>Dentist</span>
-                            <label class="flex items-center gap-1 text-primary cursor-pointer text-xs mb-0 bg-primary-light px-1 rounded">
-                                <input type="checkbox" id="walkin-auto-dentist" checked onchange="app.toggleWalkinDentist()"> Auto-Assign
+                            <label
+                                class="flex items-center gap-1 text-primary cursor-pointer text-xs mb-0 bg-primary-light px-1 rounded">
+                                <input type="checkbox" id="walkin-auto-dentist" checked
+                                    onchange="app.toggleWalkinDentist()"> Auto-Assign
                             </label>
                         </label>
                         <div class="select-wrapper mt-0">
@@ -1264,17 +1662,21 @@
                 <!-- Time Slot -->
                 <div class="card bg-muted border-none p-2 mb-2">
                     <h4 class="font-bold text-sm mb-1"><i class='bx bx-time mr-1'></i> 3. Time Allocation</h4>
-                     <label class="flex items-center gap-1 text-primary cursor-pointer text-xs mb-1 bg-primary-light px-1 rounded" style="width: fit-content;">
-                        <input type="checkbox" id="walkin-auto-time" checked onchange="app.toggleWalkinTime()"> Auto-allocate next slot
+                    <label
+                        class="flex items-center gap-1 text-primary cursor-pointer text-xs mb-1 bg-primary-light px-1 rounded"
+                        style="width: fit-content;">
+                        <input type="checkbox" id="walkin-auto-time" checked onchange="app.toggleWalkinTime()">
+                        Auto-allocate next slot
                     </label>
                     <div id="walkin-manual-time" class="form-group opacity-50" style="pointer-events: none;">
                         <label class="text-xs font-bold uppercase text-dim">Start Time</label>
                         <input type="time" id="walkin-time" class="custom-input bg-white shadow-sm mt-0">
                     </div>
-                    <div id="walkin-result-badge" class="bg-success-light text-success p-1 rounded text-xs font-bold mt-1 text-center hidden">
+                    <div id="walkin-result-badge"
+                        class="bg-success-light text-success p-1 rounded text-xs font-bold mt-1 text-center hidden">
                         <!-- Preview info -->
                     </div>
-					<input type="hidden" id="walkin-date" value="">
+                    <input type="hidden" id="walkin-date" value="">
                 </div>
             </div>
 
@@ -1297,9 +1699,10 @@
         <div class="card bg-white soft-shadow" style="width: 450px; max-width: 95%;">
             <div class="flex-center-between border-bottom pb-1 mb-2">
                 <h3 class="font-bold"><i class='bx bx-user-circle mr-1'></i>Update Profile</h3>
-                <button class="btn-icon circle outline" onclick="app.closeProfileModal()"><i class='bx bx-x'></i></button>
+                <button class="btn-icon circle outline" onclick="app.closeProfileModal()"><i
+                        class='bx bx-x'></i></button>
             </div>
-            
+
             <div class="form-grid">
                 <div class="form-group grid-full">
                     <label class="text-xs font-bold uppercase text-dim">Full Professional Name</label>
@@ -1313,7 +1716,7 @@
                     <label class="text-xs font-bold uppercase text-dim">Phone Number</label>
                     <input type="tel" id="profile-phone" class="custom-input bg-muted">
                 </div>
-                
+
                 <!-- Patient Specific Fields -->
                 <div id="profile-patient-fields" class="grid-full hidden pt-1 border-top mt-1">
                     <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -1351,32 +1754,48 @@
                             <label class="text-xs font-bold uppercase text-dim">Clinical Position</label>
                             <input type="text" id="profile-position" class="custom-input bg-muted">
                         </div>
+                        <div class="form-group grid-full">
+                            <label
+                                class="flex items-center gap-1 cursor-pointer bg-primary-light p-1 rounded border-dashed"
+                                style="border-width: 1px;">
+                                <input type="checkbox" id="profile-is-active" style="width: 18px; height: 18px;">
+                                <div class="flex-col">
+                                    <span class="text-xs font-bold uppercase text-primary">Active for Booking</span>
+                                    <span class="text-xs text-dim">If disabled, you won't appear in the patient booking
+                                        selection.</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="mt-2 pt-1">
                 <button class="btn-primary w-full shadow-hover" onclick="app.updateProfile()">Save Changes</button>
-                <p class="text-center text-xs text-dim mt-1 italic">Changes will reflect immediately across clinical records.</p>
+                <p class="text-center text-xs text-dim mt-1 italic">Changes will reflect immediately across clinical
+                    records.</p>
             </div>
         </div>
     </div>
     <!-- MODAL: Rewards & Points -->
     <div id="rewards-modal" class="bg-glass hidden flex-center"
         style="position: fixed; z-index: 2500; top: 0; left: 0; width: 100%; height: 100%;">
-        <div class="card bg-white soft-shadow" style="width: 550px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
+        <div class="card bg-white soft-shadow"
+            style="width: 550px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
             <div class="flex-center-between border-bottom pb-1 mb-2">
                 <div>
                     <h3 class="font-bold"><i class='bx bx-star mr-1 text-warning'></i> loyalty Rewards</h3>
                     <p class="text-xs text-dim">Redeem your points for discounts and free services.</p>
                 </div>
-                <button class="btn-icon circle outline" onclick="app.closeRewardsModal()"><i class='bx bx-x'></i></button>
+                <button class="btn-icon circle outline" onclick="app.closeRewardsModal()"><i
+                        class='bx bx-x'></i></button>
             </div>
 
             <div class="flex-center-between bg-muted p-2 rounded mb-2">
                 <div>
                     <p class="text-xs text-dim uppercase font-bold tracking-tight">Available Balance</p>
-                    <h2 class="text-2xl font-bold text-primary"><span id="rewards-total-balance">0</span> <span class="text-sm font-medium">Points</span></h2>
+                    <h2 class="text-2xl font-bold text-primary"><span id="rewards-total-balance">0</span> <span
+                            class="text-sm font-medium">Points</span></h2>
                 </div>
                 <div class="logo-icon bg-warning text-white" style="width: 50px; height: 50px; font-size: 24px;">
                     <i class='bx bx-coin-stack'></i>
@@ -1384,8 +1803,10 @@
             </div>
 
             <div class="tabs mb-2 border-bottom">
-                <button class="tab-btn active" data-target="reward-options" onclick="app.switchRewardsTab('options', this)">Redeem Points</button>
-                <button class="tab-btn" data-target="reward-history" onclick="app.switchRewardsTab('history', this)">Point History</button>
+                <button class="tab-btn active" data-target="reward-options"
+                    onclick="app.switchRewardsTab('options', this)">Redeem Points</button>
+                <button class="tab-btn" data-target="reward-history"
+                    onclick="app.switchRewardsTab('history', this)">Point History</button>
             </div>
 
             <div id="reward-options" class="reward-tab-content">
@@ -1413,8 +1834,74 @@
             </div>
 
             <div class="mt-2 pt-1 border-top">
-                <p class="text-xs text-dim text-center"><i class='bx bx-info-circle mr-1'></i> Points are earned automatically after each completed visit.</p>
+                <p class="text-xs text-dim text-center"><i class='bx bx-info-circle mr-1'></i> Points are earned
+                    automatically after each completed visit.</p>
             </div>
+        </div>
+    </div>
+    <!-- MODAL: Decline Booking Reason -->
+    <div id="decline-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 9000; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="card bg-white soft-shadow" style="width: 400px; max-width: 90%;">
+            <div class="flex-center-between border-bottom pb-1 mb-2">
+                <h3 class="font-bold text-danger"><i class='bx bx-message-square-x mr-1'></i> Decline Booking</h3>
+                <button class="btn-icon circle outline" onclick="app.closeDeclineModal()"><i
+                        class='bx bx-x'></i></button>
+            </div>
+
+            <p class="text-sm text-dim mb-2">Please provide a reason for declining this request. This will be shared
+                with the patient.</p>
+
+            <div class="form-group mb-1">
+                <label class="text-xs font-bold uppercase text-dim">Select Reason</label>
+                <div class="select-wrapper mt-0">
+                    <select id="decline-reason-select" class="custom-select bg-muted"
+                        onchange="app.handleDeclineReasonChange(this.value)">
+                        <option value="Schedule Conflict">Schedule Conflict</option>
+                        <option value="Dentist Unavailable">Dentist Unavailable</option>
+                        <option value="Clinic Holiday/Closed">Clinic Holiday/Closed</option>
+                        <option value="Service Maintenance">Service Maintenance</option>
+                        <option value="Other">Other (Write description...)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="decline-custom-reason-wrap" class="form-group hidden">
+                <label class="text-xs font-bold uppercase text-dim">Additional Description</label>
+                <textarea id="decline-reason-text" class="custom-input bg-muted" rows="2"
+                    placeholder="Explain the reason in detail..."></textarea>
+            </div>
+
+            <input type="hidden" id="decline-appt-id">
+
+            <div class="flex gap-1 mt-2">
+                <button class="btn-outline flex-1" onclick="app.closeDeclineModal()">Cancel</button>
+                <button class="btn-primary flex-1" style="background: var(--danger); border: none;"
+                    onclick="app.submitDecline()">Confirm Decline</button>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: View Cancellation Reason (Patient) -->
+    <div id="view-cancellation-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 9500; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="card bg-white soft-shadow" style="width: 400px; max-width: 90%; text-align: center;">
+            <div class="flex-center mx-auto bg-danger-light circle mb-1" style="width: 54px; height: 54px;">
+                <i class='bx bx-info-circle text-2xl text-danger'></i>
+            </div>
+            <h3 class="font-bold">Appointment Cancelled</h3>
+            <p class="text-xs text-dim mt-0">Details regarding your cancelled booking.</p>
+
+            <div class="card bg-muted border-none p-2 mt-2 text-left">
+                <p class="text-xs uppercase font-bold text-dim mb-1">Service & Date</p>
+                <p id="view-cancel-service" class="font-bold text-sm">--</p>
+
+                <p class="text-xs uppercase font-bold text-dim mt-2 mb-1">Reason from Dentist</p>
+                <div class="p-1 bg-white rounded border-dashed" style="border-width: 1px;">
+                    <p id="view-cancel-reason" class="text-sm italic text-danger">--</p>
+                </div>
+            </div>
+
+            <button class="btn-primary w-full mt-2" onclick="app.closeViewCancellation()">I Understand</button>
         </div>
     </div>
 </body>

@@ -147,9 +147,20 @@ body {
 }
 
 @keyframes reward-glow {
-    0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.2); border-color: var(--border-color); }
-    50% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); border-color: var(--warning); }
-    100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.2); border-color: var(--border-color); }
+    0% {
+        box-shadow: 0 0 5px rgba(245, 158, 11, 0.2);
+        border-color: var(--border-color);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        border-color: var(--warning);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(245, 158, 11, 0.2);
+        border-color: var(--border-color);
+    }
 }
 
 .reward-offer-card {
@@ -1667,12 +1678,31 @@ button {
     top: 8px;
     right: 8px;
     padding: 2px 6px;
-    background: var(--success);
     color: var(--white);
     font-size: 9px;
     font-weight: bold;
     border-radius: 4px;
     text-transform: uppercase;
+}
+
+.online-badge.bg-success {
+    background: var(--success);
+}
+
+.online-badge.bg-muted {
+    background: var(--text-dim);
+}
+
+.inactive-dentist {
+    opacity: 0.6;
+    filter: grayscale(0.8);
+    cursor: default !important;
+}
+
+.inactive-dentist:hover {
+    transform: none !important;
+    border-color: var(--border-color) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 
 /* === MODERN SETTINGS STYLES === */
@@ -1844,4 +1874,39 @@ button {
         width: 95%;
         padding: 20px 15px;
     }
+}
+
+/* --- Registration Agreement Styling --- */
+.agreement-content {
+    line-height: 1.6;
+    border: 1px solid var(--border-color) !important;
+}
+
+.agreement-content ol li {
+    margin-bottom: 8px;
+    padding-left: 4px;
+}
+
+.agreement-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.agreement-content::-webkit-scrollbar-track {
+    background: var(--muted);
+}
+
+.agreement-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+
+.agreement-content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-dim);
+}
+
+#agree-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--black);
 }

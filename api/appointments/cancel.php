@@ -9,7 +9,7 @@ include_once '../config/database.php';
 $data = json_decode(file_get_contents("php://input"));
 
 if (!empty($data->appointment_id)) {
-    $appointment_id = (int)$data->appointment_id;
+    $appointment_id = (int) $data->appointment_id;
 
     // Delete the appointment
     $query = "DELETE FROM appointments WHERE id = ?";

@@ -20,6 +20,13 @@ if (!empty($data->user_id)) {
     }
 
     if ($action === 'delete') {
+        // Soft Delete: Set deleted_at timestamp instead of hard deleting
+        $query = "UPDATE users SET deleted_at = NOW() WHERE id = ?";
+    } elseif ($action === 'restore') {
+        // Restore: Clear deleted_at timestamp
+        $query = "UPDATE users SET deleted_at = NULL WHERE id = ?";
+    } elseif ($action === 'purge') {
+        // Hard Delete: Permanently remove from database
         $query = "DELETE FROM users WHERE id = ?";
     } else {
         $status = ($action === 'suspend') ? 'suspended' : 'active';
@@ -28,14 +35,16 @@ if (!empty($data->user_id)) {
 
     $stmt = $conn->prepare($query);
     
-    if ($action === 'delete') {
+    if ($action === 'delete' || $action === 'restore' || $action === 'purge') {
         $stmt->bind_param("i", $user_id);
     } else {
         $stmt->bind_param("si", $status, $user_id);
     }
 
     if ($stmt->execute()) {
-        $msg = ($action === 'delete') ? "Professional removed from system." : "User status updated to $status.";
+        $msg = ($action === 'delete') ? "User successfully archived. You can restore them if needed." : 
+               (($action === 'restore') ? "User successfully restored." : 
+               (($action === 'purge') ? "User permanently removed from the system." : "User status updated to $status."));
         echo json_encode(["status" => "success", "message" => $msg]);
     } else {
         http_response_code(500);

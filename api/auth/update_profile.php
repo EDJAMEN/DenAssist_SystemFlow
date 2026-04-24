@@ -9,11 +9,11 @@ include_once '../config/database.php';
 $data = json_decode(file_get_contents("php://input"));
 
 if (!empty($data->user_id) && !empty($data->full_name) && !empty($data->email)) {
-    $user_id = (int)$data->user_id;
+    $user_id = (int) $data->user_id;
     $full_name = htmlspecialchars(strip_tags($data->full_name));
     $email = htmlspecialchars(strip_tags($data->email));
     $phone = htmlspecialchars(strip_tags($data->phone));
-    
+
     // Optional Professional Fields (for Dentists/Admins)
     $professional_id = !empty($data->professional_id) ? htmlspecialchars(strip_tags($data->professional_id)) : null;
     $position = !empty($data->position) ? htmlspecialchars(strip_tags($data->position)) : null;
@@ -28,9 +28,10 @@ if (!empty($data->user_id) && !empty($data->full_name) && !empty($data->email)) 
     if ($stmt_check->num_rows > 0) {
         echo json_encode(["status" => "error", "message" => "Email is already in use by another account."]);
     } else {
-        $query = "UPDATE users SET full_name = ?, email = ?, phone = ?, professional_id = ?, position = ? WHERE id = ?";
+        $is_active = isset($data->is_active) ? (int) $data->is_active : 1;
+        $query = "UPDATE users SET full_name = ?, email = ?, phone = ?, professional_id = ?, position = ?, is_active = ? WHERE id = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("sssssi", $full_name, $email, $phone, $professional_id, $position, $user_id);
+        $stmt->bind_param("sssssii", $full_name, $email, $phone, $professional_id, $position, $is_active, $user_id);
 
         if ($stmt->execute()) {
             // Update patient meta if the fields are present in the request
@@ -58,8 +59,8 @@ if (!empty($data->user_id) && !empty($data->full_name) && !empty($data->email)) 
             }
 
             // Fetch updated user data to return
-            $get_query = "SELECT u.id, u.full_name as name, u.email, u.phone, u.role as role, u.status, u.professional_id, u.position,
-                               pm.dob, pm.emergency_contact_name, pm.emergency_contact_phone, pm.allergies, pm.medications, pm.reward_points
+            $get_query = "SELECT u.id, u.full_name as name, u.email, u.phone, u.role as role, u.status, u.professional_id, u.position, u.is_active,
+                                pm.dob, pm.emergency_contact_name, pm.emergency_contact_phone, pm.allergies, pm.medications, pm.reward_points
                         FROM users u
                         LEFT JOIN patients_meta pm ON u.id = pm.user_id
                         WHERE u.id = ?";
@@ -68,8 +69,11 @@ if (!empty($data->user_id) && !empty($data->full_name) && !empty($data->email)) 
             $get_stmt->execute();
             $user_data = $get_stmt->get_result()->fetch_assoc();
 
+            // Cast types
+            $user_data['is_active'] = (bool) $user_data['is_active'];
+
             echo json_encode([
-                "status" => "success", 
+                "status" => "success",
                 "message" => "Profile updated successfully.",
                 "user" => $user_data
             ]);

@@ -4,15 +4,15 @@ header("Content-Type: application/json; charset=UTF-8");
 
 include_once '../config/database.php';
 
-$query = "SELECT id, full_name, email, phone, created_at FROM users WHERE role = 'patient' AND deleted_at IS NULL ORDER BY full_name ASC";
+$query = "SELECT id, full_name, role, deleted_at FROM users WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC";
 $result = $conn->query($query);
 
 if ($result) {
-    $patients = [];
+    $archived = [];
     while ($row = $result->fetch_assoc()) {
-        $patients[] = $row;
+        $archived[] = $row;
     }
-    echo json_encode(["status" => "success", "data" => $patients]);
+    echo json_encode(["status" => "success", "data" => $archived]);
 } else {
     echo json_encode(["status" => "error", "message" => $conn->error]);
 }

@@ -10,9 +10,9 @@ $data = json_decode(file_get_contents("php://input"));
 
 if (!empty($data->email) && !empty($data->password)) {
     $email = htmlspecialchars(strip_tags($data->email));
-    
+
     // Fetch user with full details
-    $query = "SELECT u.id, u.full_name, u.email, u.phone, u.password_hash, u.role, u.status, u.is_master, u.created_at,
+    $query = "SELECT u.id, u.full_name, u.email, u.phone, u.password_hash, u.role, u.status, u.is_master, u.created_at, u.is_active, u.professional_id, u.position,
                      pm.dob, pm.emergency_contact_name, pm.emergency_contact_phone, 
                      pm.allergies, pm.medications, pm.reward_points
               FROM users u
@@ -21,12 +21,12 @@ if (!empty($data->email) && !empty($data->password)) {
     $stmt = $conn->prepare($query);
     $stmt->bind_param("s", $email);
     $stmt->execute();
-    
+
     $result = $stmt->get_result();
-    
+
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
-        
+
         // 1. Check Status
         if ($user['status'] === 'pending') {
             http_response_code(403);
@@ -35,7 +35,7 @@ if (!empty($data->email) && !empty($data->password)) {
         }
 
         if ($data->password === $user['password_hash']) {
-            
+
             // Build user response object
             $userResponse = [
                 "id" => $user['id'],
@@ -43,9 +43,12 @@ if (!empty($data->email) && !empty($data->password)) {
                 "email" => $user['email'],
                 "phone" => $user['phone'],
                 "role" => $user['role'],
-                "is_master" => (bool)$user['is_master'],
+                "is_active" => (bool) $user['is_active'],
+                "is_master" => (bool) $user['is_master'],
+                "professional_id" => $user['professional_id'],
+                "position" => $user['position'],
                 "created_at" => $user['created_at'],
-                "reward_points" => (int)($user['reward_points'] ?? 0),
+                "reward_points" => (int) ($user['reward_points'] ?? 0),
                 "dob" => $user['dob'],
                 "emergency_contact_name" => $user['emergency_contact_name'],
                 "emergency_contact_phone" => $user['emergency_contact_phone'],
@@ -54,7 +57,7 @@ if (!empty($data->email) && !empty($data->password)) {
             ];
 
             // Fetch this user's appointments (upcoming + past)
-            $appt_query = "SELECT a.id, a.appointment_date, a.start_time, a.end_time, a.status,
+            $appt_query = "SELECT a.id, a.appointment_date, a.start_time, a.end_time, a.status, a.cancellation_reason,
                                   s.name as service_name, s.duration_minutes, s.price,
                                   doc.full_name as dentist_name
                            FROM appointments a
@@ -66,7 +69,7 @@ if (!empty($data->email) && !empty($data->password)) {
             $appt_stmt->bind_param("i", $user['id']);
             $appt_stmt->execute();
             $appt_result = $appt_stmt->get_result();
-            
+
             $appointments = [];
             while ($row = $appt_result->fetch_assoc()) {
                 $appointments[] = $row;

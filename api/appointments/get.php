@@ -13,8 +13,7 @@ if ($dentist_id > 0) {
 }
 
 // 2. Fetch results
-$query = "SELECT a.id, a.patient_id, a.appointment_date, a.start_time, a.status, 
-          IFNULL(s.name, 'Unknown Service') as service_name, 
+$query = "SELECT a.id, a.patient_id, a.appointment_date, a.start_time, a.status, a.cancellation_reason, a.created_at,           IFNULL(s.name, 'Unknown Service') as service_name, 
           IFNULL(s.price, 0) as price,
           IFNULL(u.full_name, 'Unknown Patient') as patient_name,
           IFNULL(doc.full_name, 'Unassigned') as dentist_name

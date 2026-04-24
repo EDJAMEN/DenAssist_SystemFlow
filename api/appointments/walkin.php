@@ -23,6 +23,17 @@ $service_id = (int)$data->service_id;
 $dentist_id = (int)$data->dentist_id;
 $appointment_date = !empty($data->appointment_date) ? $data->appointment_date : date('Y-m-d');
 
+// 0. Verify Dentist Availability (Active Status)
+$dentist_stmt = $conn->prepare("SELECT is_active FROM users WHERE id = ? AND role IN ('admin', 'dentist')");
+$dentist_stmt->bind_param("i", $dentist_id);
+$dentist_stmt->execute();
+$dentist_res = $dentist_stmt->get_result();
+if ($dentist_res->num_rows === 0 || $dentist_res->fetch_assoc()['is_active'] == 0) {
+    http_response_code(400);
+    echo json_encode(["status" => "error", "message" => "The selected dentist is currently not accepting bookings."]);
+    exit;
+}
+
 // 1. Get service duration
 $stmt_s = $conn->prepare("SELECT duration_minutes FROM services WHERE id = ? LIMIT 1");
 $stmt_s->bind_param("i", $service_id);
