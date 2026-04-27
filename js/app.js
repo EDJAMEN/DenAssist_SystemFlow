@@ -30,6 +30,7 @@ const app = {
         this.loadDentists();
         this.loadBookingServices();
         this.initQuickDatePicker(); // New: Initialize frictionless date cards
+        this.initDarkMode(); // New: Initialize theme preference
 
         // Disable past dates in booking calendar
         const dateInput = document.getElementById('booking-date');
@@ -921,6 +922,40 @@ const app = {
         this.currentAppointments = [];
         this.switchScreen('auth-section');
         this.showToast("Logged out successfully.", "info");
+    },
+
+    // --- Theme Management ---
+    initDarkMode: function() {
+        const savedTheme = localStorage.getItem('dentassist-theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        this.updateThemeLogos(savedTheme);
+    },
+
+    toggleDarkMode: function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('dentassist-theme', newTheme);
+        this.updateThemeLogos(newTheme);
+        
+        this.showToast(`${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} mode activated!`, "info");
+    },
+
+    updateThemeLogos: function(theme) {
+        const logoPath = theme === 'dark' ? 'assets/darkmode_dentassist.png' : 'assets/lightmode_dentassist.png';
+        const themeIcon = theme === 'dark' ? 'bx-sun' : 'bx-moon';
+        
+        document.querySelectorAll('.logo-img').forEach(img => {
+            img.src = logoPath;
+        });
+
+        // Update all theme icons
+        const icons = ['theme-icon-patient', 'theme-icon-admin'];
+        icons.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.className = `bx ${themeIcon}`;
+        });
     },
 
     // --- Screen Navigation ---

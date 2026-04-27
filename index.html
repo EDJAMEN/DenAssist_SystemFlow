@@ -384,6 +384,11 @@
                         <span id="patient-nav-name" class="font-medium">Loading...</span>
                         <span class="profile-indicator">Profile <i class='bx bx-chevron-right'></i></span>
                     </div>
+                    <div class="theme-switch ml-1" onclick="event.stopPropagation(); app.toggleDarkMode()"
+                        id="patient-theme-toggle">
+                        <i class='bx bx-moon' id="theme-icon-patient"></i>
+                        <span class="theme-switch-label">Theme</span>
+                    </div>
                     <button class="btn-icon circle outline ml-1" onclick="event.stopPropagation(); app.logout()"
                         title="Logout"><i class='bx bx-log-out'></i></button>
                 </div>
@@ -540,16 +545,21 @@
                                         </div>
                                     </div>
                                     <div class="form-group flex-1">
-                                        <label class="mb-1 d-block text-xs uppercase font-bold text-dim">Preferred Date</label>
-                                        <div id="quick-date-picker" class="flex gap-1 overflow-x-auto pb-1 no-scrollbar" style="scroll-snap-type: x mandatory;">
+                                        <label class="mb-1 d-block text-xs uppercase font-bold text-dim">Preferred
+                                            Date</label>
+                                        <div id="quick-date-picker" class="flex gap-1 overflow-x-auto pb-1 no-scrollbar"
+                                            style="scroll-snap-type: x mandatory;">
                                             <!-- Populated by app.initQuickDatePicker() -->
-                                            <div class="text-center py-1 text-xs text-dim italic">Generating calendar...</div>
+                                            <div class="text-center py-1 text-xs text-dim italic">Generating calendar...
+                                            </div>
                                         </div>
                                         <div class="flex items-center gap-1 mt-1">
-                                            <button class="btn-text text-primary text-xs font-bold" onclick="app.openCalendarModal()">
+                                            <button class="btn-text text-primary text-xs font-bold"
+                                                onclick="app.openCalendarModal()">
                                                 <i class='bx bx-calendar-edit mr-1'></i> Select Other Date
                                             </button>
-                                            <input type="date" id="booking-date" class="hidden" onchange="app.handleCustomDateSelect(this.value)">
+                                            <input type="date" id="booking-date" class="hidden"
+                                                onchange="app.handleCustomDateSelect(this.value)">
                                         </div>
                                     </div>
                                 </div>
@@ -700,6 +710,13 @@
                     </li>
                     <li id="menu-settings" onclick="app.switchAdminTab('settings', this)"><i class='bx bx-cog'></i>
                         <span>Settings</span>
+                    </li>
+                    <li class="mt-auto" onclick="app.toggleDarkMode()"
+                        style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 20px !important;">
+                        <div class="theme-switch w-full">
+                            <i class='bx bx-moon' id="theme-icon-admin"></i>
+                            <span class="theme-switch-label">Switch Mode</span>
+                        </div>
                     </li>
                 </ul>
                 <div class="sidebar-footer">
@@ -1649,17 +1666,19 @@
                             <div class="flex-col gap-1">
                                 <label class="text-xs font-bold text-dim uppercase">Select Your Reward:</label>
                                 <div class="flex gap-1 items-center">
-                                <div class="custom-select flex-1" id="booking-reward-custom">
-                                    <div class="select-trigger bg-white shadow-sm" tabindex="0"
-                                        style="padding: 0 40px 0 12px; height: 38px; min-height: 38px; border-radius: 12px;">
-                                        <span class="text-sm">Select a reward...</span>
-                                        <i class='bx bx-chevron-down' style="right: 12px; font-size: 18px;"></i>
+                                    <div class="custom-select flex-1" id="booking-reward-custom">
+                                        <div class="select-trigger bg-white shadow-sm" tabindex="0"
+                                            style="padding: 0 40px 0 12px; height: 38px; min-height: 38px; border-radius: 12px;">
+                                            <span class="text-sm">Select a reward...</span>
+                                            <i class='bx bx-chevron-down' style="right: 12px; font-size: 18px;"></i>
+                                        </div>
+                                        <div class="select-options" id="booking-reward-options"
+                                            style="border-radius: 16px;">
+                                            <div class="text-center py-1 text-xs text-dim italic">Loading rewards...
+                                            </div>
+                                        </div>
+                                        <input type="hidden" id="booking-reward-select" value="">
                                     </div>
-                                    <div class="select-options" id="booking-reward-options" style="border-radius: 16px;">
-                                        <div class="text-center py-1 text-xs text-dim italic">Loading rewards...</div>
-                                    </div>
-                                    <input type="hidden" id="booking-reward-select" value="">
-                                </div>
                                     <button id="apply-reward-btn" class="btn-primary py-0 px-2" style="height: 38px;"
                                         onclick="app.applyRewardToBooking()">
                                         Apply
