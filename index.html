@@ -19,12 +19,16 @@
     <!-- Subtle Noise Texture Overlay -->
     <div class="bg-noise"></div>
 
-    <!-- SPLASH SCREEN -->
-    <div id="splash-screen" class="splash-container flex-center">
-        <div class="logo-large flex-center flex-col text-center">
-            <div class="logo-icon mb-1 wave-animation flex-center"><i class='bx bx-plus-medical'></i></div>
-            <h1 class="font-bold tracking-wide mt-1">DentAssist</h1>
-            <p class="text-dim text-sm mt-1">Smart Dental Clinic Management</p>
+    <!-- SPLASH SCREEN: Fast Minimalist Reveal -->
+    <div id="splash-screen" class="splash-container">
+        <div class="splash-logo-wrapper">
+            <div class="splash-icon">
+                <img src="assets/lightmode_dentassist.png" alt="DentAssist Logo">
+            </div>
+            <div class="splash-text">
+                <div class="logo-main"><span class="logo-dent">Dent</span><span class="logo-assist">Assist</span></div>
+                <div class="logo-subtext">Dental Clinic Management System</div>
+            </div>
         </div>
     </div>
 
@@ -41,11 +45,22 @@
 
         <!-- 1. AUTHENTICATION FLOW -->
         <section id="auth-section" class="screen active auth-wrapper flex-center">
-            <div class="auth-box card soft-shadow-lg pattern-bg-subtle">
+            <!-- Decorative Elements -->
+            <i class='bx bx-plus-medical floating-shape shape-1'></i>
+            <i class='bx bxs-circle floating-shape shape-2'></i>
+            <i class='bx bx-plus-medical floating-shape shape-3'></i>
+
+            <div class="auth-box card soft-shadow-lg">
                 <div class="auth-header">
                     <div class="logo logo-large flex-center">
-                        <div class="logo-icon"><i class='bx bx-plus-medical'></i></div>
-                        <span>DentAssist</span>
+                        <div class="logo-icon">
+                            <img src="assets/lightmode_dentassist.png" alt="DentAssist Logo" class="logo-img">
+                        </div>
+                        <div class="logo-text">
+                            <div class="logo-main"><span class="logo-dent">Dent</span><span
+                                    class="logo-assist">Assist</span></div>
+                            <div class="logo-subtext">DENTAL CLINIC MANAGEMENT SYSTEM</div>
+                        </div>
                     </div>
                     <p class="text-dim mt-1">Enter your details to proceed</p>
                 </div>
@@ -77,8 +92,7 @@
 
                     <!-- User Agreement Section -->
                     <div id="register-agreement" class="auth-form">
-                        <div class="agreement-content"
-                            style="height: 250px; overflow-y: scroll; padding: 15px; background: #f8f9fa; border-radius: 12px; margin-bottom: 15px; text-align: left; border: 1px solid #eee;">
+                        <div class="agreement-content">
                             <h3 class="font-bold text-sm mb-1 text-primary" style="margin-top: 0;"><i
                                     class='bx bx-book-content mr-1'></i> User Agreement & Privacy Policy</h3>
                             <div class="text-sm text-dim leading-relaxed">
@@ -166,15 +180,30 @@
                             </div>
                             <div class="input-group">
                                 <i class='bx bx-briefcase-alt'></i>
-                                <select id="reg-dentist-position" class="custom-input bg-white"
-                                    style="height: auto; padding: 0.6rem 2.5rem;">
-                                    <option value="" disabled selected>Select Position</option>
-                                    <option value="General Dentist">General Dentist</option>
-                                    <option value="Orthodontist">Orthodontist</option>
-                                    <option value="Oral Surgeon">Oral Surgeon</option>
-                                    <option value="Hygienist">Hygienist</option>
-                                    <option value="Clinic Administrator">Clinic Administrator</option>
-                                </select>
+                                <div class="custom-select" id="pos-select-custom">
+                                    <div class="select-trigger" tabindex="0">
+                                        <span>Select Position</span>
+                                        <i class='bx bx-chevron-down'></i>
+                                    </div>
+                                    <div class="select-options">
+                                        <div class="option"
+                                            onclick="app.setCustomSelect('pos-select-custom', 'General Dentist', 'reg-dentist-position')">
+                                            General Dentist</div>
+                                        <div class="option"
+                                            onclick="app.setCustomSelect('pos-select-custom', 'Orthodontist', 'reg-dentist-position')">
+                                            Orthodontist</div>
+                                        <div class="option"
+                                            onclick="app.setCustomSelect('pos-select-custom', 'Oral Surgeon', 'reg-dentist-position')">
+                                            Oral Surgeon</div>
+                                        <div class="option"
+                                            onclick="app.setCustomSelect('pos-select-custom', 'Hygienist', 'reg-dentist-position')">
+                                            Hygienist</div>
+                                        <div class="option"
+                                            onclick="app.setCustomSelect('pos-select-custom', 'Clinic Administrator', 'reg-dentist-position')">
+                                            Clinic Administrator</div>
+                                    </div>
+                                    <input type="hidden" id="reg-dentist-position" value="">
+                                </div>
                             </div>
                         </div>
 
@@ -183,7 +212,7 @@
                             Account</button>
 
                         <div class="text-center mt-2 border-top pt-1">
-                            <p id="staff-reg-toggle-text" class="text-xs text-dim">Are you a clinic member? <a href="#"
+                            <p id="staff-reg-toggle-text" class="text-sm text-dim">Are you a clinic member? <a href="#"
                                     class="font-bold text-primary" onclick="app.toggleStaffRegistration(true)">Register
                                     as Staff</a></p>
                         </div>
@@ -197,29 +226,36 @@
 
         <!-- 1.2 FORGOT PASSWORD SECTION -->
         <section id="forgot-password-section" class="screen auth-wrapper flex-center">
-            <div class="auth-box card soft-shadow-lg pattern-bg-subtle">
-                <div class="page-header text-center mb-2" style="position: relative;">
-                    <div style="position: absolute; left: 0; top: 0;">
+            <!-- Decorative Elements -->
+            <i class='bx bx-plus-medical floating-shape shape-1'></i>
+            <i class='bx bxs-circle floating-shape shape-2'></i>
+            <i class='bx bx-plus-medical floating-shape shape-3'></i>
+
+            <div class="auth-box card soft-shadow-lg">
+                <div class="auth-header" style="position: relative;">
+                    <div style="position: absolute; left: 16px; top: 32px;">
                         <button class="btn-icon circle outline bg-white shadow-sm" title="Go Back to Login"
                             onclick="app.switchScreen('auth-section')"><i class='bx bx-arrow-back'></i></button>
                     </div>
-                    <div class="logo-icon mx-auto mb-1 bg-primary-light text-primary"><i class='bx bx-key'></i></div>
-                    <h2 class="section-title mb-0">Reset Password</h2>
+                    <h2 class="section-title mb-0" style="font-size: 24px; font-weight: 800;">Reset Password</h2>
                     <p class="text-dim text-sm mt-1">Verify your account to set a new password.</p>
                 </div>
 
-                <!-- Step 1: Verification -->
-                <div id="forgot-step-1">
-                    <div class="input-group mb-1">
-                        <i class='bx bx-envelope'></i>
-                        <input type="email" id="forgot-email" placeholder="Registered Email" required>
+                <div class="auth-box-body">
+                    <!-- Step 1: Verification -->
+                    <div id="forgot-step-1">
+                        <div class="input-group mb-1">
+                            <i class='bx bx-envelope'></i>
+                            <input type="email" id="forgot-email" placeholder="Registered Email" required>
+                        </div>
+                        <div class="input-group mb-2">
+                            <i class='bx bx-phone'></i>
+                            <input type="tel" id="forgot-phone" placeholder="Registered Phone" required>
+                        </div>
+                        <button type="button" class="btn-primary w-full shadow-hover"
+                            onclick="app.verifyForReset()">Verify
+                            Details</button>
                     </div>
-                    <div class="input-group mb-2">
-                        <i class='bx bx-phone'></i>
-                        <input type="tel" id="forgot-phone" placeholder="Registered Phone" required>
-                    </div>
-                    <button type="button" class="btn-primary w-full shadow-hover" onclick="app.verifyForReset()">Verify
-                        Details</button>
                 </div>
 
                 <!-- Step 2: New Password (Hidden until verified) -->
@@ -240,7 +276,12 @@
 
         <!-- 1.5 ONBOARDING INTAKE -->
         <section id="onboarding-section" class="screen auth-wrapper flex-center">
-            <div class="auth-box card soft-shadow-lg pattern-bg-subtle">
+            <!-- Decorative Elements -->
+            <i class='bx bx-plus-medical floating-shape shape-1'></i>
+            <i class='bx bxs-circle floating-shape shape-2'></i>
+            <i class='bx bx-plus-medical floating-shape shape-3'></i>
+
+            <div class="auth-box card soft-shadow-lg">
                 <div class="page-header text-center mb-2" style="position: relative;">
                     <div style="position: absolute; left: 0; top: 0;">
                         <button class="btn-icon circle outline bg-white shadow-sm" title="Go Back to Login"
@@ -285,6 +326,11 @@
 
         <!-- 1.6 PENDING VERIFICATION -->
         <section id="pending-section" class="screen auth-wrapper flex-center">
+            <!-- Decorative Elements -->
+            <i class='bx bx-plus-medical floating-shape shape-1'></i>
+            <i class='bx bxs-circle floating-shape shape-2'></i>
+            <i class='bx bx-plus-medical floating-shape shape-3'></i>
+
             <div class="auth-box card soft-shadow-lg text-center p-3">
                 <div class="logo-icon mx-auto mb-2 bg-warning-light text-warning"
                     style="width: 80px; height: 80px; font-size: 40px; border-radius: 50%;">
@@ -313,8 +359,14 @@
         <section id="patient-section" class="screen">
             <nav class="top-nav border-bottom bg-glass">
                 <div class="logo">
-                    <div class="logo-icon"><i class='bx bx-plus-medical'></i></div>
-                    DentAssist
+                    <div class="logo-icon">
+                        <img src="assets/lightmode_dentassist.png" alt="DentAssist Logo" class="logo-img">
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-main"><span class="logo-dent">Dent</span><span
+                                class="logo-assist">Assist</span></div>
+                        <div class="logo-subtext">DENTAL CLINIC MANAGEMENT SYSTEM</div>
+                    </div>
                 </div>
                 <!-- Enhanced Main Menu Navigation -->
                 <div class="nav-links">
@@ -473,17 +525,32 @@
                                 <div class="form-grid mt-2">
                                     <div class="form-group">
                                         <label>Dental Service</label>
-                                        <div class="select-wrapper">
-                                            <select id="booking-service" class="custom-select bg-muted shadow-sm"
+                                        <div class="custom-select w-full" id="booking-service-custom">
+                                            <div class="select-trigger bg-muted shadow-sm" tabindex="0"
+                                                style="padding: 12px 48px 12px 16px; min-height: 42px;">
+                                                <span>-- Choose a Service --</span>
+                                                <i class='bx bx-chevron-down' style="right: 16px;"></i>
+                                            </div>
+                                            <div class="select-options" id="booking-service-options">
+                                                <div class="text-center py-1 text-xs text-dim italic">Loading
+                                                    services...</div>
+                                            </div>
+                                            <input type="hidden" id="booking-service" value=""
                                                 onchange="app.checkAvailability()">
-                                                <option value="">Loading services...</option>
-                                            </select>
                                         </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Preferred Date</label>
-                                        <input type="date" id="booking-date" class="custom-input bg-muted shadow-sm"
-                                            onchange="app.checkAvailability()">
+                                    <div class="form-group flex-1">
+                                        <label class="mb-1 d-block text-xs uppercase font-bold text-dim">Preferred Date</label>
+                                        <div id="quick-date-picker" class="flex gap-1 overflow-x-auto pb-1 no-scrollbar" style="scroll-snap-type: x mandatory;">
+                                            <!-- Populated by app.initQuickDatePicker() -->
+                                            <div class="text-center py-1 text-xs text-dim italic">Generating calendar...</div>
+                                        </div>
+                                        <div class="flex items-center gap-1 mt-1">
+                                            <button class="btn-text text-primary text-xs font-bold" onclick="app.openCalendarModal()">
+                                                <i class='bx bx-calendar-edit mr-1'></i> Select Other Date
+                                            </button>
+                                            <input type="date" id="booking-date" class="hidden" onchange="app.handleCustomDateSelect(this.value)">
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="text-xs text-dim mt-1 italic">* Slots update automatically when you select a
@@ -592,9 +659,15 @@
             <!-- Sidebar -->
             <aside class="sidebar border-right bg-glass">
                 <div class="logo mt-1 mb-2">
-                    <div class="logo-icon"><i class='bx bx-plus-medical'></i></div>
-                    DentAssist
-                    <span id="admin-role-badge" class="badge text-xs ml-1 border-badge badge-admin">Admin</span>
+                    <div class="logo-icon">
+                        <img src="assets/lightmode_dentassist.png" alt="DentAssist Logo" class="logo-img">
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-main"><span class="logo-dent">Dent</span><span
+                                class="logo-assist">Assist</span></div>
+                        <div class="logo-subtext" style="font-size: 5.5px;">MANAGEMENT SYSTEM</div>
+                    </div>
+                    <span id="admin-role-badge" class="logo-badge badge-admin">Admin</span>
                 </div>
                 <ul class="sidebar-menu">
                     <li class="active" onclick="app.switchAdminTab('dashboard', this)"><i class='bx bx-grid-alt'></i>
@@ -658,8 +731,10 @@
                             <h2 id="admin-dashboard-title">Clinic Overview</h2>
                             <p class="text-dim text-sm mt-0 text-muted">Welcome back! Here's what's happening today.</p>
                         </div>
-                        <div id="admin-date-badge" class="date-badge border-badge text-sm bg-white soft-shadow"><i
-                                class='bx bx-calendar mr-1 text-dim'></i> Oct 20, 2026</div>
+                        <div id="admin-date-badge" class="text-sm font-medium text-dim"
+                            style="display: flex; align-items: center; gap: 6px; opacity: 0.8;">
+                            <i class='bx bx-calendar'></i> <span>Oct 20, 2026</span>
+                        </div>
                     </header>
 
                     <div class="stats-grid mt-2">
@@ -927,7 +1002,8 @@
                     <div class="settings-container mt-3" style="max-width: 900px; margin: 0 auto;">
                         <div class="grid-2 gap-2 responsive-flex-col">
                             <!-- Operation Hours Card -->
-                            <div id="card-operation-hours" class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
+                            <div id="card-operation-hours"
+                                class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
                                 <div class="bg-primary-light p-2 border-bottom flex items-center">
                                     <div class="stat-icon-wrap sm bg-white text-primary mr-1">
                                         <i class='bx bx-time-five'></i>
@@ -966,7 +1042,8 @@
                             </div>
 
                             <!-- Staff Break Card -->
-                            <div id="card-break-policy" class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
+                            <div id="card-break-policy"
+                                class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
                                 <div class="bg-warning-light p-2 border-bottom flex items-center">
                                     <div class="stat-icon-wrap sm bg-white text-warning mr-1">
                                         <i class='bx bx-coffee-togo'></i>
@@ -1004,7 +1081,8 @@
                             </div>
 
                             <!-- Personal Availability Card (New) -->
-                            <div id="card-personal-status" class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
+                            <div id="card-personal-status"
+                                class="card detail-card bg-white soft-shadow-sm border-none overflow-hidden p-0">
                                 <div class="bg-success-light p-2 border-bottom flex items-center">
                                     <div class="stat-icon-wrap sm bg-white text-success mr-1">
                                         <i class='bx bx-user-check'></i>
@@ -1058,10 +1136,12 @@
                                 insights.</p>
                         </div>
                         <div class="flex gap-1">
-                            <button class="btn-outline bg-white soft-shadow-sm flex items-center" onclick="app.exportReport('print')">
+                            <button class="btn-outline bg-white soft-shadow-sm flex items-center"
+                                onclick="app.exportReport('print')">
                                 <i class='bx bxs-file-pdf mr-1 text-danger'></i> Download PDF
                             </button>
-                            <button class="btn-primary soft-shadow-sm flex items-center" onclick="app.exportReport('csv')">
+                            <button class="btn-primary soft-shadow-sm flex items-center"
+                                onclick="app.exportReport('csv')">
                                 <i class='bx bx-file mr-1'></i> Download CSV
                             </button>
                         </div>
@@ -1072,13 +1152,28 @@
                             <div class="form-group mb-0">
                                 <label class="text-xs uppercase tracking-wider font-bold text-dim mb-1 d-block">Quick
                                     Select</label>
-                                <select id="report-quick-select" class="custom-select bg-muted shadow-sm"
-                                    onchange="app.handleReportQuickSelect()">
-                                    <option value="today">Today</option>
-                                    <option value="this_week">This Week</option>
-                                    <option value="this_month" selected>This Month</option>
-                                    <option value="custom">Custom Range</option>
-                                </select>
+                                <div class="custom-select" id="report-quick-select-custom">
+                                    <div class="select-trigger bg-muted shadow-sm" tabindex="0"
+                                        style="padding: 12px 48px 12px 16px; min-height: 42px;">
+                                        <span>This Month</span>
+                                        <i class='bx bx-chevron-down' style="right: 16px;"></i>
+                                    </div>
+                                    <div class="select-options">
+                                        <div class="option"
+                                            onclick="app.setCustomSelect('report-quick-select-custom', 'Today', 'report-quick-select', 'today'); app.handleReportQuickSelect();">
+                                            Today</div>
+                                        <div class="option"
+                                            onclick="app.setCustomSelect('report-quick-select-custom', 'This Week', 'report-quick-select', 'this_week'); app.handleReportQuickSelect();">
+                                            This Week</div>
+                                        <div class="option selected"
+                                            onclick="app.setCustomSelect('report-quick-select-custom', 'This Month', 'report-quick-select', 'this_month'); app.handleReportQuickSelect();">
+                                            This Month</div>
+                                        <div class="option"
+                                            onclick="app.setCustomSelect('report-quick-select-custom', 'Custom Range', 'report-quick-select', 'custom'); app.handleReportQuickSelect();">
+                                            Custom Range</div>
+                                    </div>
+                                    <input type="hidden" id="report-quick-select" value="this_month">
+                                </div>
                             </div>
                             <div class="form-group mb-0">
                                 <label class="text-xs uppercase tracking-wider font-bold text-dim mb-1 d-block">Start
@@ -1554,12 +1649,18 @@
                             <div class="flex-col gap-1">
                                 <label class="text-xs font-bold text-dim uppercase">Select Your Reward:</label>
                                 <div class="flex gap-1 items-center">
-                                    <select id="booking-reward-select"
-                                        class="custom-select flex-1 py-0 px-1 text-sm bg-white"
-                                        style="height: 38px; margin-top:0;">
-                                        <option value="">Choosing a reward...</option>
-                                    </select>
-                                    <button class="btn-primary py-0 px-2" style="height: 38px;"
+                                <div class="custom-select flex-1" id="booking-reward-custom">
+                                    <div class="select-trigger bg-white shadow-sm" tabindex="0"
+                                        style="padding: 0 40px 0 12px; height: 38px; min-height: 38px; border-radius: 12px;">
+                                        <span class="text-sm">Select a reward...</span>
+                                        <i class='bx bx-chevron-down' style="right: 12px; font-size: 18px;"></i>
+                                    </div>
+                                    <div class="select-options" id="booking-reward-options" style="border-radius: 16px;">
+                                        <div class="text-center py-1 text-xs text-dim italic">Loading rewards...</div>
+                                    </div>
+                                    <input type="hidden" id="booking-reward-select" value="">
+                                </div>
+                                    <button id="apply-reward-btn" class="btn-primary py-0 px-2" style="height: 38px;"
                                         onclick="app.applyRewardToBooking()">
                                         Apply
                                     </button>
@@ -1923,6 +2024,56 @@
             </div>
 
             <button class="btn-primary w-full mt-2" onclick="app.closeViewCancellation()">I Understand</button>
+        </div>
+    </div>
+    <!-- LOGOUT CONFIRMATION MODAL -->
+    <div id="logout-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 12000; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="modal-content card bg-white p-3 soft-shadow-lg text-center"
+            style="width: 320px; border-radius: 28px; animation: modal-reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div class="bg-danger-light circle mx-auto mb-2 flex-center" style="width: 64px; height: 64px;">
+                <i class='bx bx-log-out text-3xl text-danger'></i>
+            </div>
+            <h3 class="font-bold">Wait, leaving so soon?</h3>
+            <p class="text-xs text-dim mt-1">Are you sure you want to end your current session?</p>
+            <div class="flex flex-col gap-1 mt-2">
+                <button class="btn-primary w-full py-2 bg-danger border-none" onclick="app.confirmLogout()">
+                    Yes, Log Out
+                </button>
+                <button class="btn-text w-full py-1 text-xs font-bold" onclick="app.closeLogoutModal()">
+                    No, Stay Logged In
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM CALENDAR MODAL -->
+    <div id="calendar-modal" class="bg-glass hidden flex-center"
+        style="position: fixed; z-index: 11000; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="modal-content card bg-white p-2 soft-shadow-lg"
+            style="width: 320px; border: 1px solid rgba(0,0,0,0.05); border-radius: 28px; animation: modal-reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div class="flex-center-between mb-2 px-1">
+                <h4 id="calendar-month-year" class="font-bold text-sm">October 2026</h4>
+                <div class="flex gap-1">
+                    <button class="btn-icon circle outline sm" onclick="app.changeCalendarMonth(-1)"><i
+                            class='bx bx-chevron-left'></i></button>
+                    <button class="btn-icon circle outline sm" onclick="app.changeCalendarMonth(1)"><i
+                            class='bx bx-chevron-right'></i></button>
+                </div>
+            </div>
+            <div class="calendar-grid">
+                <div class="calendar-day-label">S</div>
+                <div class="calendar-day-label">M</div>
+                <div class="calendar-day-label">T</div>
+                <div class="calendar-day-label">W</div>
+                <div class="calendar-day-label">T</div>
+                <div class="calendar-day-label">F</div>
+                <div class="calendar-day-label">S</div>
+            </div>
+            <div id="calendar-days" class="calendar-grid mt-1">
+                <!-- Populated by app.renderCalendar() -->
+            </div>
+            <button class="btn-text w-full mt-2 text-xs font-bold" onclick="app.closeCalendarModal()">Cancel</button>
         </div>
     </div>
 </body>

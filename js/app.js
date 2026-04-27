@@ -5,6 +5,8 @@ const app = {
     currentAppointments: [],
     globalQueueCache: [], // Cache for searching
     patientCache: [], // Cache for searching patient directory
+    bookingServicesCache: [], // Cache for service details
+    rewardsCache: [], // Cache for reward details
     resetUserId: null,
 
     init: function () {
@@ -26,7 +28,8 @@ const app = {
         this.setupBookingSlots();
         this.setupOTPAuth();
         this.loadDentists();
-        this.loadBookingServices(); // New: Load available services on startup
+        this.loadBookingServices();
+        this.initQuickDatePicker(); // New: Initialize frictionless date cards
 
         // Disable past dates in booking calendar
         const dateInput = document.getElementById('booking-date');
@@ -39,8 +42,16 @@ const app = {
 
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
-            if (splash) splash.classList.add('hide-splash');
-        }, 500);
+            if (splash) {
+                splash.classList.add('hide-splash');
+            }
+
+            // Ensure login screen is ready
+            this.switchScreen('auth-section');
+
+            // Re-enable interactions after splash
+            document.body.style.overflow = 'auto';
+        }, 1200);
     },
 
     // --- Loading & Notifications ---
@@ -740,7 +751,7 @@ const app = {
         if (dateBadge) {
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            dateBadge.innerHTML = `<i class='bx bx-calendar mr-1 text-dim'></i> ${dateStr}`;
+            dateBadge.innerHTML = `<i class='bx bx-calendar'></i> <span>${dateStr}</span>`;
         }
 
         // Fetch appointments from backend for admin view
@@ -897,6 +908,15 @@ const app = {
     },
 
     logout: function () {
+        document.getElementById('logout-modal').classList.remove('hidden');
+    },
+
+    closeLogoutModal: function() {
+        document.getElementById('logout-modal').classList.add('hidden');
+    },
+
+    confirmLogout: function () {
+        this.closeLogoutModal();
         this.currentUser = null;
         this.currentAppointments = [];
         this.switchScreen('auth-section');
@@ -1068,8 +1088,10 @@ const app = {
         }
 
         // --- Gather display info for the confirmation modal ---
-        const serviceSelect = document.getElementById('booking-service');
-        const serviceText = serviceSelect.options[serviceSelect.selectedIndex].text;
+        const service = this.bookingServicesCache.find(s => s.id == serviceId);
+        const serviceText = service ? service.name : '--';
+        const price = service ? `₱${parseFloat(service.price).toLocaleString()}` : '--';
+        const duration = service ? `${service.duration_minutes} minutes` : 'See service details';
 
         // Dentist name — read from the badge which selectDentist() always keeps in sync
         const dentistName = document.getElementById('selected-dentist-name-badge')?.textContent?.trim() || `Dentist #${dentistId}`;
@@ -1078,16 +1100,11 @@ const app = {
         const dateObj = new Date(dateInput + 'T00:00:00');
         const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-        // Try to get duration & price from a data attribute or service option
-        const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
-        const duration = selectedOption.dataset.duration ? `${selectedOption.dataset.duration} minutes` : 'See service details';
-        const price = selectedOption.dataset.price ? `₱${parseFloat(selectedOption.dataset.price).toLocaleString()}` : '';
-
         // Populate modal
         document.getElementById('bc-patient-name').textContent = user.name;
         document.getElementById('bc-dentist-name').textContent = dentistName;
         document.getElementById('bc-service-name').textContent = serviceText;
-        document.getElementById('bc-service-price').textContent = price || 'See pricing';
+        document.getElementById('bc-service-price').textContent = price;
         document.getElementById('bc-date').textContent = formattedDate;
         document.getElementById('bc-time').textContent = selectedSlot.textContent;
         document.getElementById('bc-duration').textContent = duration;
@@ -1144,15 +1161,21 @@ const app = {
             const response = await fetch('api/rewards/list.php');
             const result = await response.json();
             if (result.status === 'success') {
+                this.rewardsCache = result.data;
                 const availableRewards = result.data.filter(r => (u.reward_points || 0) >= r.points_required);
 
                 if (availableRewards.length > 0) {
                     rewardSection.classList.remove('hidden');
-                    let options = '<option value="">Select a reward...</option>';
+                    const optionsList = document.getElementById('booking-reward-options');
+                    let html = `<div class="option" onclick="app.setCustomSelect('booking-reward-custom', 'Select a reward...', 'booking-reward-select', '')">Select a reward...</div>`;
+                    
                     availableRewards.forEach(r => {
-                        options += `<option value="${r.id}" data-points="${r.points_required}" data-type="${r.reward_type}" data-value="${r.value}" data-service="${r.service_id}">${r.name} (${r.points_required} Pts)</option>`;
+                        html += `
+                            <div class="option" onclick="app.setCustomSelect('booking-reward-custom', '${r.name}', 'booking-reward-select', '${r.id}')">
+                                ${r.name} (${r.points_required} Pts)
+                            </div>`;
                     });
-                    select.innerHTML = options;
+                    optionsList.innerHTML = html;
                 } else {
                     rewardSection.classList.add('hidden');
                 }
@@ -1165,27 +1188,49 @@ const app = {
     appliedReward: null,
 
     applyRewardToBooking: function () {
-        const select = document.getElementById('booking-reward-select');
-        const rewardId = select.value;
-        if (!rewardId) {
+        const rewardId = document.getElementById('booking-reward-select').value;
+        const msgEl = document.getElementById('booking-reward-msg');
+        const btn = document.getElementById('apply-reward-btn');
+        
+        // If already applied, clicking the button again will "Remove" it
+        if (this.appliedReward) {
             this.appliedReward = null;
-            document.getElementById('booking-reward-msg').classList.add('hidden');
+            if (msgEl) msgEl.classList.add('hidden');
+            if (btn) {
+                btn.textContent = "Apply";
+                btn.classList.remove('bg-danger');
+            }
+            this.showToast("Reward removed.", "info");
             return;
         }
 
-        const option = select.options[select.selectedIndex];
+        if (!rewardId) {
+            this.showToast("Please select a reward first.", "warning");
+            return;
+        }
+
+        const reward = this.rewardsCache.find(r => r.id == rewardId);
+        if (!reward) return;
+
         this.appliedReward = {
-            id: rewardId,
-            name: option.text,
-            points: option.dataset.points,
-            type: option.dataset.type,
-            value: option.dataset.value,
-            service_id: option.dataset.service
+            id: reward.id,
+            name: reward.name,
+            points: reward.points_required,
+            type: reward.reward_type,
+            value: reward.value,
+            service_id: reward.service_id
         };
 
-        const msgEl = document.getElementById('booking-reward-msg');
-        msgEl.innerHTML = `<i class='bx bx-check-circle text-success'></i> Applied: <strong>${this.appliedReward.name}</strong>. Points will be deducted after booking.`;
-        msgEl.classList.remove('hidden');
+        if (msgEl) {
+            msgEl.innerHTML = `<i class='bx bx-check-circle text-success'></i> Applied: <strong>${reward.name}</strong>. Points will be deducted after booking.`;
+            msgEl.classList.remove('hidden');
+        }
+
+        if (btn) {
+            btn.textContent = "Remove";
+            btn.classList.add('bg-danger');
+        }
+
         this.showToast("Reward applied!", "success");
     },
 
@@ -1820,18 +1865,18 @@ const app = {
                 document.getElementById('set-clinic-close').value = s.clinic_close || '';
                 document.getElementById('set-break-start').value = s.break_start || '';
                 document.getElementById('set-break-end').value = s.break_end || '';
-                
+
                 // Minimal Design for Staff: Only show Personal Status
                 const opCard = document.getElementById('card-operation-hours');
                 const brCard = document.getElementById('card-break-policy');
-                
+
                 if (this.currentUser && !this.currentUser.is_master) {
                     if (opCard) opCard.classList.add('hidden');
                     if (brCard) brCard.classList.add('hidden');
                 } else {
                     if (opCard) opCard.classList.remove('hidden');
                     if (brCard) brCard.classList.remove('hidden');
-                    
+
                     // Role-based Labeling for Master
                     const groupTitle = document.getElementById('settings-group-title');
                     const groupDesc = document.getElementById('settings-group-desc');
@@ -2166,18 +2211,23 @@ const app = {
                 result.data.forEach(d => {
                     const initials = d.full_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
                     const isActive = parseInt(d.is_active) === 1;
-                    const statusClass = isActive ? 'bg-success' : 'bg-muted text-dim';
-                    const statusText = isActive ? 'Online' : 'Away';
                     const cardClass = isActive ? '' : 'inactive-dentist';
 
                     html += `
                         <div class="dentist-card ${cardClass}" onclick="app.handleDentistSelect(this, '${d.id}', '${d.full_name}', ${isActive})">
-                            <div class="online-badge ${statusClass}">${statusText}</div>
-                            <div class="avatar-large flex-center bg-muted text-dim font-bold mx-auto mb-1 border-dashed">
-                                ${initials}
+                            <div class="avatar-wrap">
+                                <div class="avatar-tiny">
+                                    ${initials}
+                                </div>
+                                <div class="online-status-dot ${isActive ? 'active' : ''}"></div>
                             </div>
-                            <h4 class="font-bold text-sm">${d.full_name}</h4>
-                            <p class="text-xs text-dim">${d.position || 'Specialist'}</p>
+                            <div class="dentist-info">
+                                <h4>${d.full_name}</h4>
+                                <p>${d.position || 'Specialist'}</p>
+                            </div>
+                            <div class="selection-check">
+                                <i class='bx bx-check'></i>
+                            </div>
                         </div>
                     `;
                 });
@@ -2217,22 +2267,152 @@ const app = {
     },
 
     loadBookingServices: async function () {
-        const select = document.getElementById('booking-service');
-        if (!select) return;
+        const optionsList = document.getElementById('booking-service-options');
+        if (!optionsList) return;
 
         try {
             const response = await fetch('api/services/get.php');
             const result = await response.json();
             if (result.status === 'success') {
-                let html = '<option value="">-- Choose a Service --</option>';
+                this.bookingServicesCache = result.data; // Save for later retrieval
+                let html = `<div class="option" onclick="app.setCustomSelect('booking-service-custom', '-- Choose a Service --', 'booking-service', ''); app.checkAvailability();">-- Choose a Service --</div>`;
+                
                 result.data.forEach(s => {
-                    html += `<option value="${s.id}" data-price="${s.price}" data-duration="${s.duration_minutes}">${s.name} - ₱${s.price} (${s.duration_minutes}m)</option>`;
+                    const displayName = `${s.name} - ₱${s.price} (${s.duration_minutes}m)`;
+                    html += `
+                        <div class="option" onclick="app.setCustomSelect('booking-service-custom', '${s.name}', 'booking-service', '${s.id}'); app.checkAvailability();">
+                            ${displayName}
+                        </div>`;
                 });
-                select.innerHTML = html;
+                optionsList.innerHTML = html;
             }
         } catch (e) {
             console.error("Failed to load services for booking.");
+            optionsList.innerHTML = '<div class="text-error italic p-1">Failed to load services.</div>';
         }
+    },
+
+    initQuickDatePicker: function() {
+        const picker = document.getElementById('quick-date-picker');
+        if (!picker) return;
+
+        const days = 14;
+        let html = '';
+        const today = new Date();
+
+        for (let i = 0; i < days; i++) {
+            const date = new Date();
+            date.setDate(today.getDate() + i);
+
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+            const dayNum = date.getDate();
+            const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+            const fullDate = date.toISOString().split('T')[0];
+
+            html += `
+                <div class="date-card" data-date="${fullDate}" onclick="app.handleDateSelect(this, '${fullDate}')">
+                    <span class="day-name">${dayName}</span>
+                    <span class="day-number">${dayNum}</span>
+                    <span class="month-name">${monthName}</span>
+                </div>
+            `;
+        }
+        picker.innerHTML = html;
+        
+        // Select today by default
+        const firstCard = picker.querySelector('.date-card');
+        if (firstCard) this.handleDateSelect(firstCard, today.toISOString().split('T')[0]);
+    },
+
+    handleDateSelect: function(el, date) {
+        // UI
+        document.querySelectorAll('.date-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        
+        // Data
+        const input = document.getElementById('booking-date');
+        input.value = date;
+        
+        this.checkAvailability();
+    },
+
+    handleCustomDateSelect: function(date) {
+        if (!date) return;
+        
+        // Try to find matching card
+        const cards = document.querySelectorAll('.date-card');
+        let found = false;
+        cards.forEach(c => {
+            if (c.dataset.date === date) {
+                this.handleDateSelect(c, date);
+                found = true;
+            }
+        });
+
+        if (!found) {
+            // Unselect all cards if it's a custom far date
+            cards.forEach(c => c.classList.remove('selected'));
+            this.checkAvailability();
+        }
+    },
+
+    currentCalendarDate: new Date(),
+
+    openCalendarModal: function() {
+        this.currentCalendarDate = new Date();
+        document.getElementById('calendar-modal').classList.remove('hidden');
+        this.renderCalendar();
+    },
+
+    closeCalendarModal: function() {
+        document.getElementById('calendar-modal').classList.add('hidden');
+    },
+
+    changeCalendarMonth: function(dir) {
+        this.currentCalendarDate.setMonth(this.currentCalendarDate.getMonth() + dir);
+        this.renderCalendar();
+    },
+
+    renderCalendar: function() {
+        const grid = document.getElementById('calendar-days');
+        const monthYear = document.getElementById('calendar-month-year');
+        if (!grid || !monthYear) return;
+
+        const date = new Date(this.currentCalendarDate);
+        monthYear.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+        const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        
+        let html = '';
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        // Padding for first day
+        for (let i = 0; i < firstDay; i++) {
+            html += '<div class="calendar-date disabled"></div>';
+        }
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            const currentDay = new Date(date.getFullYear(), date.getMonth(), i);
+            const isToday = currentDay.getTime() === today.getTime();
+            const isDisabled = currentDay < today;
+            const fullDate = currentDay.toISOString().split('T')[0];
+            const isSelected = document.getElementById('booking-date').value === fullDate;
+
+            html += `
+                <div class="calendar-date ${isToday ? 'today' : ''} ${isDisabled ? 'disabled' : ''} ${isSelected ? 'selected' : ''}"
+                     onclick="${!isDisabled ? `app.selectCalendarDate('${fullDate}')` : ''}">
+                    ${i}
+                </div>
+            `;
+        }
+        grid.innerHTML = html;
+    },
+
+    selectCalendarDate: function(date) {
+        this.handleCustomDateSelect(date);
+        this.closeCalendarModal();
     },
 
     // --- Master Admin Professional Management ---
@@ -2558,7 +2738,7 @@ const app = {
         if (isStaff) {
             extraFields.classList.remove('hidden');
             staffFlag.value = "1";
-            toggleText.innerHTML = `Registering as Clinic Personnel. <a href="#" class="font-bold text-primary" onclick="app.toggleStaffRegistration(false)">Switch to Patient</a>`;
+            toggleText.innerHTML = `<span class="font-bold text-main">Registering as Clinic Personnel.</span> <a href="#" class="font-bold text-primary" onclick="app.toggleStaffRegistration(false)">Switch to Patient</a>`;
             this.showToast("Staff registration mode activated.", "info");
         } else {
             extraFields.classList.add('hidden');
@@ -2995,7 +3175,7 @@ const app = {
     downloadReportCSV: function () {
         const data = this.lastReportData;
         let csvContent = "data:text/csv;charset=utf-8,";
-        
+
         // Section: Summary
         csvContent += "DENTASSIST ANALYTICS REPORT\n";
         csvContent += `Period,${data.date_range.start} to ${data.date_range.end}\n`;
@@ -3040,8 +3220,53 @@ const app = {
         link.click();
         document.body.removeChild(link);
         this.showToast("CSV report downloaded.", "success");
+    },
+
+    setCustomSelect: function (containerId, displayValue, hiddenInputId, actualValue = null) {
+        const container = document.getElementById(containerId);
+        const trigger = container.querySelector('.select-trigger span');
+        const hiddenInput = document.getElementById(hiddenInputId);
+        const options = container.querySelectorAll('.option');
+
+        // Update UI
+        trigger.textContent = displayValue;
+        hiddenInput.value = actualValue !== null ? actualValue : displayValue;
+
+        // Trigger change event if needed
+        const event = new Event('change');
+        hiddenInput.dispatchEvent(event);
+
+        // Update active class
+        options.forEach(opt => {
+            if (opt.textContent.trim() === displayValue.trim()) opt.classList.add('selected');
+            else opt.classList.remove('selected');
+        });
+
+        // Close dropdown
+        container.classList.remove('active');
     }
 };
+
+// Global click listener for custom selects
+document.addEventListener('click', (e) => {
+    // Toggle logic
+    const trigger = e.target.closest('.select-trigger');
+    if (trigger) {
+        const container = trigger.closest('.custom-select');
+        container.classList.toggle('active');
+        
+        // Close others
+        document.querySelectorAll('.custom-select').forEach(cs => {
+            if (cs !== container) cs.classList.remove('active');
+        });
+        return;
+    }
+
+    // Close all if clicking outside
+    if (!e.target.closest('.custom-select')) {
+        document.querySelectorAll('.custom-select').forEach(cs => cs.classList.remove('active'));
+    }
+});
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {

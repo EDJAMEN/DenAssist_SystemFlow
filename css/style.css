@@ -1,21 +1,21 @@
 /* Soft Minimalist Theme with Textures */
 :root {
-    --bg-color: #FAFAFA;
-    --text-main: #18181B;
-    /* zinc-900 */
-    --text-dim: #71717A;
-    /* zinc-500 */
-    --border-color: #E4E4E7;
-    /* zinc-200 */
-    --black: #09090B;
-    /* zinc-950 */
+    --bg-color: #F8FAFC;
+    --text-main: #0F172A;
+    /* slate-900 */
+    --text-dim: #64748B;
+    /* slate-500 */
+    --border-color: #E2E8F0;
+    /* slate-200 */
+    --black: #0EB1B1;
+    /* primary teal from logo */
     --white: #FFFFFF;
-    --muted: #F4F4F5;
-    /* zinc-100 */
+    --muted: #F1F5F9;
+    /* slate-100 */
 
     /* Branding */
-    --primary: #18181B;
-    --primary-light: #E4E4E7;
+    --primary: #0EB1B1;
+    --primary-light: #F0FBFA;
     --success: #10B981;
     --success-light: #D1FAE5;
     --warning: #F59E0B;
@@ -23,16 +23,16 @@
     --danger: #EF4444;
 
     /* Spacing & Structure */
-    --radius: 12px;
-    --radius-sm: 8px;
+    --radius: 20px;
+    --radius-sm: 12px;
     --radius-full: 9999px;
-    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
-    --shadow-hover: 0 10px 20px rgba(0, 0, 0, 0.08);
+    /* Shadows - Soft Teal Tinted */
+    --shadow-sm: 0 1px 3px rgba(14, 177, 177, 0.1);
+    --shadow: 0 10px 15px -3px rgba(14, 177, 177, 0.08), 0 4px 6px -2px rgba(14, 177, 177, 0.04);
+    --shadow-md: 0 20px 25px -5px rgba(14, 177, 177, 0.12), 0 10px 10px -5px rgba(14, 177, 177, 0.06);
+    --shadow-hover: 0 25px 35px -5px rgba(14, 177, 177, 0.15);
 }
 
 /* Reset & Base */
@@ -569,23 +569,85 @@ body {
 }
 
 .logo-icon {
-    background: var(--black);
-    color: var(--white);
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    min-width: 32px;
+    height: 40px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    box-shadow: var(--shadow-sm);
+    justify-content: flex-start;
+    transition: var(--transition);
 }
 
 .logo-large .logo-icon {
-    width: 44px;
-    height: 44px;
-    font-size: 26px;
-    border-radius: 12px;
+    min-width: 64px;
+    height: 64px;
+    justify-content: center;
+}
+
+.logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1;
+    margin-left: 4px;
+}
+
+.logo-main {
+    display: flex;
+    align-items: baseline;
+}
+
+.logo-dent {
+    color: #18181B;
+    /* zinc-900 */
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.logo-assist {
+    color: #0EB1B1;
+    /* teal matching the tooth logo */
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.logo-subtext {
+    font-size: 5.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 3px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.logo-large .logo-dent,
+.logo-large .logo-assist {
+    font-size: 32px;
+}
+
+.logo-large .logo-subtext {
+    font-size: 8.5px;
+    margin-top: 5px;
+    letter-spacing: 0.2em;
+}
+
+.logo-badge {
+    background: var(--primary);
+    color: var(--white);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    font-weight: 800;
+    margin-left: 8px;
+    letter-spacing: 0.05em;
 }
 
 .icon-box {
@@ -695,36 +757,36 @@ button {
 
 .input-group input {
     width: 100%;
-    padding: 12px 14px 12px 40px;
-    border: 1px solid var(--border-color);
-    background: var(--white);
+    padding: 14px 14px 14px 44px;
+    border: 2px solid transparent;
+    background: var(--muted);
     color: var(--text-main);
     border-radius: var(--radius-sm);
     transition: var(--transition);
-    box-shadow: var(--shadow-sm);
 }
 
 .input-group input:focus {
-    border-color: var(--black);
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(14, 177, 177, 0.1);
 }
 
 .custom-input,
 .custom-select {
     width: 100%;
-    padding: 12px 14px;
-    border: 1px solid var(--border-color);
-    background: var(--white);
+    padding: 14px 14px;
+    border: 2px solid transparent;
+    background: var(--muted);
     color: var(--text-main);
     border-radius: var(--radius-sm);
     transition: var(--transition);
-    box-shadow: var(--shadow-sm);
 }
 
 .custom-input:focus,
 .custom-select:focus {
-    border-color: var(--black);
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(14, 177, 177, 0.1);
 }
 
 .select-wrapper {
@@ -762,15 +824,18 @@ button {
 }
 
 .btn-primary {
-    background: var(--black);
+    background: linear-gradient(135deg, var(--primary), #06B6D4);
     color: var(--white);
-    border: 1px solid transparent;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: none;
+    box-shadow: 0 4px 12px rgba(14, 177, 177, 0.2);
+    font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(14, 177, 177, 0.3);
+    filter: brightness(1.05);
 }
 
 .btn-primary:active {
@@ -916,61 +981,324 @@ button {
     }
 }
 
-/* 1. AUTH SCREEN */
-#auth-section {
+/* ============================
+   1. AUTH SCREEN - "Ethereal & Premium" Layout
+   ============================ */
+
+/* Plain White Background */
+#auth-section,
+#forgot-password-section {
     justify-content: center;
     align-items: center;
+    background: #ffffff; /* Plain white as requested */
+    position: relative;
+    overflow: hidden;
 }
 
+/* The Card - Ultra clean, heavy soft shadow, super rounded, subtle border to pop against white */
 .auth-box {
     width: 100%;
-    max-width: 420px;
-    box-shadow: var(--shadow-md);
-    border-top: 4px solid var(--black);
+    max-width: 440px;
+    background: #ffffff;
+    border-radius: 32px; /* Very rounded */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 10px;
+    position: relative;
+    z-index: 10;
+    animation: auth-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+@keyframes auth-reveal {
+    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Header - Clean white, no colored banner */
 .auth-header {
     text-align: center;
-    margin-bottom: 24px;
+    padding: 32px 32px 16px;
+    background: transparent;
+    border: none;
+    margin: 0;
 }
 
+.auth-header .logo-img { filter: drop-shadow(0 4px 6px rgba(14, 177, 177, 0.2)); }
+.auth-header .logo-dent { color: var(--text-main); }
+.auth-header .logo-assist { color: var(--primary); }
+.auth-header .logo-subtext { color: var(--text-dim); letter-spacing: 0.15em; font-weight: 600; }
+
+.auth-header p {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 12px;
+}
+
+/* iOS Style Segmented Tabs */
 .auth-tabs {
     display: flex;
-    border: 1px solid var(--border-color);
-    margin-bottom: 24px;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
+    background: #f3f4f6; /* Soft gray track */
+    border-radius: 100px; /* Pill shape track */
+    margin: 0 32px 24px;
+    padding: 6px;
+    border: none;
+    position: relative;
 }
 
 .tab-btn {
     flex: 1;
-    padding: 10px;
+    padding: 12px 10px;
     background: transparent;
     color: var(--text-dim);
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
-    border-right: 1px solid var(--border-color);
-    transition: var(--transition);
-}
-
-.tab-btn:last-child {
-    border-right: none;
+    border: none;
+    border-radius: 100px; /* Pill shape buttons */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
 }
 
 .tab-btn.active {
-    background: var(--white);
-    color: var(--black);
-    box-shadow: var(--shadow-sm);
+    background: #ffffff;
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* Lifted pill effect */
+    font-weight: 700;
 }
 
-.auth-form {
+.tab-btn:not(.active):hover {
+    color: var(--text-main);
+}
+
+/* Card body */
+.auth-forms,
+#forgot-password-section .auth-box-body {
+    padding: 0 32px 32px;
+}
+
+/* Special Pill Inputs just for auth */
+.auth-form .input-group,
+#forgot-password-section .input-group {
+    background: #f8fafc;
+    border: 1px solid transparent;
+    border-radius: 100px;
+    padding: 4px 8px;
+    transition: all 0.3s ease;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+}
+
+/* Fix leading icon overlap: only target the first icon in the input-group */
+.auth-form .input-group > i,
+#forgot-password-section .input-group > i {
+    color: #94a3b8;
+    position: absolute;
+    left: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    pointer-events: none;
+    z-index: 5;
+    font-size: 18px;
+}
+
+.auth-form .input-group input,
+.auth-form .input-group select,
+#forgot-password-section .input-group input {
+    background: transparent;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 12px 16px 12px 60px; /* Increased padding for inset icon */
+    border-radius: 100px;
+    flex: 1;
+    width: 100%;
+    outline: none;
+}
+
+.auth-form .input-group:focus-within,
+#forgot-password-section .input-group:focus-within {
+    background: #ffffff;
+    border-color: rgba(14, 177, 177, 0.3);
+    box-shadow: 0 0 0 4px rgba(14, 177, 177, 0.1);
+}
+
+.auth-form .input-group:focus-within i,
+#forgot-password-section .input-group:focus-within i {
+    color: var(--primary);
+}
+
+/* Fix the "weird fit" by removing parent padding and ensuring full width */
+.auth-form .input-group:has(.custom-select) {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.custom-select {
+    position: relative;
+    width: 100%;
+    flex: 1; /* Stretch to fill the entire pill */
+}
+
+.select-trigger {
+    width: 100%;
+    background: #f8fafc;
+    border: 1px solid transparent;
+    border-radius: 100px;
+    padding: 14px 60px 14px 60px; /* Symmetrical padding */
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+    outline: none;
+    min-height: 50px;
+    position: relative;
+}
+
+.select-trigger span {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+/* Inset chevron for better visual balance */
+.select-trigger .bx-chevron-down {
+    color: #94a3b8;
+    font-size: 20px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: absolute;
+    right: 24px; /* Symmetrical inset with left icon */
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.custom-select.active .select-trigger {
+    background: #ffffff;
+    border-color: rgba(14, 177, 177, 0.3);
+    box-shadow: 0 0 0 4px rgba(14, 177, 177, 0.1);
+}
+
+.select-trigger:focus {
+    background: #ffffff;
+    border-color: rgba(14, 177, 177, 0.3);
+    box-shadow: 0 0 0 4px rgba(14, 177, 177, 0.1);
+}
+
+.custom-select.active .select-trigger .bx-chevron-down {
+    transform: translateY(-50%) rotate(180deg);
+    color: var(--primary);
+}
+
+.select-options {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 15px 45px rgba(0,0,0,0.15);
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 10px;
+    z-index: 100;
     display: none;
+    transform-origin: top;
+    animation: drop-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+@keyframes drop-fade-in {
+    from { opacity: 0; transform: scaleY(0.9) translateY(-10px); }
+    to { opacity: 1; transform: scaleY(1) translateY(0); }
+}
+
+.custom-select.active .select-options {
+    display: block;
+}
+
+.select-options .option {
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dim);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.select-options .option:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding-left: 24px;
+}
+
+.select-options .option.selected {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* Glowing Primary Button */
+.auth-form .btn-primary,
+#forgot-password-section .btn-primary {
+    border-radius: 100px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #0EB1B1, #0891b2);
+    border: none;
+    box-shadow: 0 8px 20px rgba(14, 177, 177, 0.3);
+    transition: all 0.3s ease;
+    margin-top: 8px;
+}
+
+.auth-form .btn-primary:hover,
+#forgot-password-section .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(14, 177, 177, 0.4);
+}
+
+/* Animations */
+.auth-form { display: none; }
 .auth-form.active {
     display: block;
-    animation: fade-in 0.2s ease;
+    animation: zoom-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+@keyframes zoom-fade-in {
+    from { opacity: 0; transform: scale(0.96) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Links & Text */
+.auth-forms .text-right a {
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.auth-forms .text-right a:hover { color: var(--primary); }
+
+#staff-reg-toggle-text { margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--border-color); }
+#staff-reg-toggle-text a { color: var(--primary); font-weight: 700; text-decoration: none; }
+#staff-reg-toggle-text a:hover { text-decoration: underline; }
+
+/* Sub-screens wrapper */
+.auth-wrapper {
+    padding: 20px;
+    min-height: 100vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Hide old floating medical crosses to keep it clean */
+.auth-wrapper .floating-shape { display: none; }
 
 .role-selector {
     display: flex;
@@ -1548,36 +1876,95 @@ button {
     }
 }
 
-/* Splash Screen & Global Loader */
+/* --- SPLASH SCREEN: Glassmorphism Focus Reveal --- */
 .splash-container {
     position: fixed;
     inset: 0;
-    background: var(--bg-color);
-    /* Fixed transparency bug */
-    z-index: 9999;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(80px);
+    -webkit-backdrop-filter: blur(80px);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: backdrop-filter 1s ease, opacity 1s ease, visibility 1s;
+}
+
+.splash-container.hide-splash {
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.splash-logo-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 1.2s, filter 1s ease-out;
+    text-align: center;
+    transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
-.splash-container.hide-splash {
+.splash-container.hide-splash .splash-logo-wrapper {
     opacity: 0;
-    visibility: hidden;
-    filter: blur(8px);
+    transform: scale(1.05); /* Softer scale */
 }
 
-.splash-container .logo-icon {
-    width: 64px;
-    height: 64px;
-    font-size: 32px;
-    background: var(--black);
-    color: var(--white);
-    border-radius: 16px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+.splash-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 24px;
+    background: #ffffff;
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
 }
 
+.splash-icon img {
+    width: 80px;
+    height: auto;
+}
+
+.splash-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.splash-text .logo-main {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-main);
+    line-height: 1;
+}
+
+.splash-text .logo-dent { color: var(--text-main); }
+.splash-text .logo-assist { color: var(--primary); }
+
+.splash-text .logo-subtext {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--text-dim);
+    margin-top: 12px;
+    opacity: 0.8;
+    margin-right: -0.3em; /* Compensate for letter-spacing to truly center */
+}
+
+/* Hide old advanced elements */
+.splash-icon-container::after,
+.splash-container::before,
+.splash-loader-track,
+.splash-container.morphing { display: none !important; }
+
+/* Global Loader Overrides */
 .global-loader-container {
     position: fixed;
     inset: 0;
@@ -1595,6 +1982,123 @@ button {
     visibility: hidden;
     display: flex !important;
     pointer-events: none;
+}
+
+/* --- Quick Date Picker Cards --- */
+.date-card {
+    min-width: 65px;
+    padding: 12px 8px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    scroll-snap-align: start;
+    user-select: none;
+}
+
+.date-card:hover {
+    border-color: var(--primary-light);
+    background: #f8fafc;
+}
+
+.date-card.selected {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(14, 177, 177, 0.25);
+    transform: translateY(-2px);
+}
+
+.date-card .day-name {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+}
+
+.date-card.selected .day-name {
+    opacity: 0.9;
+}
+
+.date-card .day-number {
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.date-card .month-name {
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+/* --- Custom Calendar Grid --- */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-day-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-dim);
+    text-align: center;
+    padding-bottom: 8px;
+}
+
+.calendar-date {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calendar-date:hover:not(.disabled) {
+    background: var(--muted);
+    color: var(--primary);
+}
+
+.calendar-date.selected {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(14, 177, 177, 0.3);
+}
+
+.calendar-date.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    font-weight: 400;
+}
+
+.calendar-date.today {
+    color: var(--primary);
+    border: 1px solid var(--primary-light);
+}
+
+@keyframes modal-reveal {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .loader-box {
@@ -1636,62 +2140,130 @@ button {
 }
 
 
-/* Dentist Cards in Booking */
+/* --- Professional Dentist Selection --- */
 .dentist-card {
-    min-width: 140px;
-    padding: 16px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    text-align: center;
-    cursor: pointer;
-    transition: var(--transition);
-    background: var(--white);
-    position: relative;
-    overflow: hidden;
     flex: 1;
+    min-width: 260px;
+    padding: 12px 16px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    user-select: none;
 }
 
 .dentist-card:hover {
-    border-color: var(--black);
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+    background: #f8fafc;
+    transform: translateX(4px);
 }
 
 .dentist-card.selected {
-    background: var(--black);
-    border-color: var(--black);
-    color: var(--white);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    background: var(--primary-light);
+    border-color: var(--primary);
+    box-shadow: 0 8px 20px rgba(14, 177, 177, 0.1);
 }
 
-.dentist-card.selected .text-dim {
-    color: rgba(255, 255, 255, 0.7);
+.dentist-card .avatar-wrap {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+.dentist-card .avatar-tiny {
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+    background: var(--muted);
+    color: var(--text-main);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.3s ease;
 }
 
 .dentist-card.selected .avatar-tiny {
-    background: var(--white);
-    color: var(--black);
+    background: var(--primary);
+    color: #ffffff;
 }
 
-.online-badge {
+.dentist-card .online-status-dot {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    padding: 2px 6px;
-    color: var(--white);
-    font-size: 9px;
-    font-weight: bold;
-    border-radius: 4px;
-    text-transform: uppercase;
+    bottom: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    background: #cbd5e1;
 }
 
-.online-badge.bg-success {
+.dentist-card .online-status-dot.active {
     background: var(--success);
 }
 
-.online-badge.bg-muted {
-    background: var(--text-dim);
+.dentist-card .dentist-info {
+    flex: 1;
 }
+
+.dentist-card .dentist-info h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: var(--text-main);
+}
+
+.dentist-card .dentist-info p {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.dentist-card .selection-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.dentist-card.selected .selection-check {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+.dentist-card .selection-check i {
+    font-size: 14px;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dentist-card.selected .selection-check i {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.inactive-dentist {
+    opacity: 0.6;
+    filter: grayscale(1);
+    cursor: not-allowed;
+}
+
 
 .inactive-dentist {
     opacity: 0.6;
@@ -1878,8 +2450,15 @@ button {
 
 /* --- Registration Agreement Styling --- */
 .agreement-content {
-    line-height: 1.6;
+    height: 250px;
+    overflow-y: auto;
+    padding: 20px;
+    background: var(--muted);
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    text-align: left;
     border: 1px solid var(--border-color) !important;
+    line-height: 1.6;
 }
 
 .agreement-content ol li {
@@ -1913,33 +2492,43 @@ button {
 
 /* --- Print Styles --- */
 @media print {
-    .sidebar, .admin-header button, .admin-header .btn-text, .admin-tab:not(.active), .settings-container, .card:has(.form-grid), .btn-primary, .btn-outline, .btn-text, .admin-date-badge {
+
+    .sidebar,
+    .admin-header button,
+    .admin-header .btn-text,
+    .admin-tab:not(.active),
+    .settings-container,
+    .card:has(.form-grid),
+    .btn-primary,
+    .btn-outline,
+    .btn-text,
+    .admin-date-badge {
         display: none !important;
     }
-    
+
     .admin-content {
         margin-left: 0 !important;
         padding: 0 !important;
         width: 100% !important;
     }
-    
+
     .admin-tab.active {
         display: block !important;
     }
-    
+
     .card {
         box-shadow: none !important;
         border: 1px solid #eee !important;
     }
-    
+
     body {
         background: white !important;
     }
-    
+
     #admin-reports {
         display: block !important;
     }
-    
+
     .hidden-print {
         display: none !important;
     }
